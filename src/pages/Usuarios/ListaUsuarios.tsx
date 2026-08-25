@@ -123,26 +123,6 @@ export default function ListaUsuarios() {
               placeholder="Buscar pelo nome..."
             />
 
-            <CampoBusca
-              id="filtro-email"
-              comIcone={false}
-              className={LARGURA_FILTRO}
-              valor={listagem.filtros.email ?? ""}
-              aoAlterar={(valor) => listagem.definirFiltro("email", valor)}
-              placeholder="E-mail"
-            />
-
-            <CampoBusca
-              id="filtro-telefone"
-              comIcone={false}
-              className={LARGURA_FILTRO}
-              valor={listagem.filtros.telefone ?? ""}
-              aoAlterar={(valor) =>
-                listagem.definirFiltro("telefone", formatarTelefone(valor))
-              }
-              placeholder="Telefone"
-            />
-
             <CampoSelect
               id="filtro-status"
               className={LARGURA_FILTRO}
