@@ -10,10 +10,11 @@ import { Link, useLocation } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { useAutenticacao } from "../context/AutenticacaoContext";
 import {
+  BoxCubeIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
-  ListIcon,
+  UserCircleIcon,
 } from "../icons";
 import { cn } from "../utils";
 
@@ -42,8 +43,8 @@ const itensMenu: ItemMenu[] = [
     caminho: "/",
   },
   {
-    nome: "Cadastros",
-    icone: <ListIcon />,
+    nome: "Usuários",
+    icone: <UserCircleIcon />,
     subItens: [
       { nome: "Usuários", caminho: "/usuarios", permissao: "usuario.ver" },
       {
@@ -56,8 +57,13 @@ const itensMenu: ItemMenu[] = [
         caminho: "/permissoes",
         permissao: "permissao.ver",
       },
-      { nome: "Empresas", caminho: "/empresas", permissao: "empresa.ver" },
     ],
+  },
+  {
+    nome: "Empresas",
+    icone: <BoxCubeIcon />,
+    caminho: "/empresas",
+    permissao: "empresa.ver",
   },
 ];
 
@@ -105,7 +111,9 @@ const AppSidebar: React.FC = () => {
   }, [permitido]);
 
   const estaAtivo = useCallback(
-    (caminho: string) => location.pathname === caminho,
+    (caminho: string) =>
+      location.pathname === caminho ||
+      location.pathname.startsWith(`${caminho}/`),
     [location.pathname],
   );
 
@@ -120,11 +128,11 @@ const AppSidebar: React.FC = () => {
   // Abre o grupo que contém a rota atual.
   useEffect(() => {
     const indice = itensVisiveis.findIndex((item) =>
-      item.subItens?.some((sub) => location.pathname.startsWith(sub.caminho)),
+      item.subItens?.some((sub) => estaAtivo(sub.caminho)),
     );
 
     setSubmenuAberto(indice >= 0 ? indice : null);
-  }, [location.pathname, itensVisiveis]);
+  }, [estaAtivo, itensVisiveis]);
 
   useEffect(() => {
     if (submenuAberto === null) return;
@@ -199,7 +207,7 @@ const AppSidebar: React.FC = () => {
             {mostrarTexto ? "Menu" : <HorizontaLDots className="size-6" />}
           </h2>
 
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-4">
             {itensVisiveis.map((item, indice) => (
               <li key={item.nome}>
                 {item.subItens ? (
@@ -290,7 +298,7 @@ const AppSidebar: React.FC = () => {
                             to={sub.caminho}
                             className={cn(
                               "menu-dropdown-item",
-                              location.pathname.startsWith(sub.caminho)
+                              estaAtivo(sub.caminho)
                                 ? "menu-dropdown-item-active"
                                 : "menu-dropdown-item-inactive",
                             )}

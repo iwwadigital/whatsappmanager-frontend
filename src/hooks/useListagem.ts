@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mensagemDoErro } from "../services/http";
 import type {
   Paginacao,
@@ -8,6 +8,9 @@ import type {
 
 export type Filtros = Record<string, string>;
 
+/** Atraso antes de consultar a API quando o usuário digita em um filtro. */
+const ATRASO_FILTRO = 400;
+
 interface OpcoesListagem<T> {
   listar: (parametros?: ParametrosListagem) => Promise<ResultadoLista<T>>;
   filtrosIniciais?: Filtros;
@@ -15,8 +18,8 @@ interface OpcoesListagem<T> {
 }
 
 /**
- * Estado das listagens: filtros (scopes do Model), paginação da API,
- * carregamento, estado vazio ("aviso") e erros.
+ * Estado das listagens: filtros (scopes do Model) aplicados automaticamente,
+ * paginação da API, carregamento, estado vazio ("aviso") e erros.
  */
 export function useListagem<T>({
   listar,
@@ -31,7 +34,9 @@ export function useListagem<T>({
     listarRef.current = listar;
   });
 
+  // "filtros" acompanha os campos na tela; "aplicados" é o que vai para a API.
   const [filtros, setFiltros] = useState<Filtros>(iniciaisRef.current);
+  const [aplicados, setAplicados] = useState<Filtros>(iniciaisRef.current);
   const [pagina, setPagina] = useState(1);
   const [itens, setItens] = useState<T[]>([]);
   const [paginacao, setPaginacao] = useState<Paginacao | null>(null);
@@ -40,6 +45,23 @@ export function useListagem<T>({
   );
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+
+  const chaveFiltros = JSON.stringify(filtros);
+  const chaveAplicados = JSON.stringify(aplicados);
+
+  // Digitação vira consulta depois do atraso, sem botão de "filtrar".
+  useEffect(() => {
+    if (chaveFiltros === chaveAplicados) {
+      return;
+    }
+
+    const temporizador = window.setTimeout(() => {
+      setAplicados(JSON.parse(chaveFiltros) as Filtros);
+      setPagina(1);
+    }, ATRASO_FILTRO);
+
+    return () => window.clearTimeout(temporizador);
+  }, [chaveFiltros, chaveAplicados]);
 
   const carregar = useCallback(async () => {
     const requisicao = requisicaoRef.current + 1;
@@ -50,7 +72,7 @@ export function useListagem<T>({
 
     try {
       const resultado = await listarRef.current({
-        ...filtros,
+        ...aplicados,
         page: pagina,
         por_pagina: porPagina,
       });
@@ -75,21 +97,38 @@ export function useListagem<T>({
         setCarregando(false);
       }
     }
-  }, [filtros, pagina, porPagina]);
+  }, [aplicados, pagina, porPagina]);
 
   useEffect(() => {
     void carregar();
   }, [carregar]);
 
-  const aplicarFiltros = useCallback((novos: Filtros) => {
-    setFiltros(novos);
-    setPagina(1);
-  }, []);
+  /**
+   * Atualiza um filtro. Campos de texto usam o atraso padrão; selects,
+   * datas e autocompletes devem passar `imediato` para consultar na hora.
+   */
+  const definirFiltro = useCallback(
+    (campo: string, valor: string, imediato = false) => {
+      setFiltros((atuais) => ({ ...atuais, [campo]: valor }));
+
+      if (imediato) {
+        setAplicados((atuais) => ({ ...atuais, [campo]: valor }));
+        setPagina(1);
+      }
+    },
+    [],
+  );
 
   const limparFiltros = useCallback(() => {
     setFiltros(iniciaisRef.current);
+    setAplicados(iniciaisRef.current);
     setPagina(1);
   }, []);
+
+  const temFiltroAtivo = useMemo(
+    () => Object.values(filtros).some((valor) => valor !== ""),
+    [filtros],
+  );
 
   return {
     itens,
@@ -99,8 +138,9 @@ export function useListagem<T>({
     carregando,
     erro,
     mensagemVazio,
+    temFiltroAtivo,
     irParaPagina: setPagina,
-    aplicarFiltros,
+    definirFiltro,
     limparFiltros,
     recarregar: carregar,
   };

@@ -1,22 +1,20 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import CabecalhoPagina from "../../components/crud/CabecalhoPagina";
-import BarraFiltros from "../../components/crud/BarraFiltros";
-import Paginacao from "../../components/crud/Paginacao";
+import CartaoListagem from "../../components/crud/CartaoListagem";
+import BotaoNovo from "../../components/crud/BotaoNovo";
 import AcoesLinha from "../../components/crud/AcoesLinha";
 import ModalExclusao from "../../components/crud/ModalExclusao";
-import CampoTexto from "../../components/campos/CampoTexto";
+import CampoBusca from "../../components/campos/CampoBusca";
 import {
-  EstadoCarregando,
-  EstadoVazio,
-  MensagemErro,
-  MensagemSucesso,
-} from "../../components/crud/EstadosLista";
+  Celula,
+  CelulaCabecalho,
+  CLASSE_CABECALHO,
+} from "../../components/crud/Tabela";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
@@ -27,10 +25,6 @@ import { mensagemDoErro } from "../../services/http";
 import type { Permissao } from "../../types/modelos";
 import { ouTraco } from "../../utils/formato";
 
-const CLASSE_TH =
-  "px-5 py-3 text-left text-theme-xs font-medium text-gray-500 dark:text-gray-400";
-const CLASSE_TD = "px-5 py-4 text-sm text-gray-700 dark:text-gray-400";
-
 export default function ListaPermissoes() {
   const { temPermissao } = useAutenticacao();
   const local = useLocation();
@@ -40,7 +34,6 @@ export default function ListaPermissoes() {
     filtrosIniciais: { nome: "" },
   });
 
-  const [nome, setNome] = useState("");
   const [mensagem, setMensagem] = useState<string | null>(
     (local.state as { mensagem?: string } | null)?.mensagem ?? null,
   );
@@ -79,123 +72,70 @@ export default function ListaPermissoes() {
         description="Listagem de permissões"
       />
 
-      <CabecalhoPagina
-        titulo="Permissões"
-        trilha={[{ rotulo: "Permissões" }]}
+      <CabecalhoPagina titulo="Permissões" trilha={[{ rotulo: "Permissões" }]} />
+
+      <CartaoListagem
+        carregando={listagem.carregando}
+        erro={listagem.erro}
+        mensagem={mensagem}
+        vazio={listagem.itens.length === 0}
+        mensagemVazio={listagem.mensagemVazio}
+        paginacao={listagem.paginacao}
+        aoMudarPagina={listagem.irParaPagina}
+        filtros={
+          <CampoBusca
+            id="filtro-nome"
+            valor={listagem.filtros.nome ?? ""}
+            aoAlterar={(valor) => listagem.definirFiltro("nome", valor)}
+            placeholder="Buscar pelo nome..."
+          />
+        }
         acoes={
           temPermissao("permissao.criar") && (
-            <Link
-              to="/permissoes/novo"
-              className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-            >
-              Nova permissão
-            </Link>
+            <BotaoNovo para="/permissoes/novo">Nova permissão</BotaoNovo>
           )
         }
-      />
-
-      <BarraFiltros
-        filtrando={listagem.carregando}
-        aoFiltrar={() => listagem.aplicarFiltros({ nome })}
-        aoLimpar={() => {
-          setNome("");
-          listagem.limparFiltros();
-        }}
       >
-        <CampoTexto
-          id="filtro-nome"
-          label="Nome"
-          valor={nome}
-          aoAlterar={setNome}
-          placeholder="Buscar pelo nome"
-        />
-      </BarraFiltros>
+        <Table>
+          <TableHeader className={CLASSE_CABECALHO}>
+            <TableRow>
+              <CelulaCabecalho>Nome</CelulaCabecalho>
+              <CelulaCabecalho>Chave</CelulaCabecalho>
+              <CelulaCabecalho>Descrição</CelulaCabecalho>
+              <CelulaCabecalho>Ações</CelulaCabecalho>
+            </TableRow>
+          </TableHeader>
 
-      {mensagem && (
-        <div className="mb-6">
-          <MensagemSucesso mensagem={mensagem} />
-        </div>
-      )}
-
-      {listagem.erro && (
-        <div className="mb-6">
-          <MensagemErro mensagem={listagem.erro} />
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-        {listagem.carregando ? (
-          <EstadoCarregando />
-        ) : listagem.itens.length === 0 ? (
-          <EstadoVazio
-            mensagem={
-              listagem.erro
-                ? "Nenhum registro para exibir."
-                : listagem.mensagemVazio
-            }
-          />
-        ) : (
-          <>
-            <div className="max-w-full overflow-x-auto">
-              <Table>
-                <TableHeader className="border-b border-gray-100 dark:border-gray-800">
-                  <TableRow>
-                    <TableCell isHeader className={CLASSE_TH}>
-                      Nome
-                    </TableCell>
-                    <TableCell isHeader className={CLASSE_TH}>
-                      Chave
-                    </TableCell>
-                    <TableCell isHeader className={CLASSE_TH}>
-                      Descrição
-                    </TableCell>
-                    <TableCell isHeader className={CLASSE_TH}>
-                      Ações
-                    </TableCell>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {listagem.itens.map((permissao) => (
-                    <TableRow key={permissao.id}>
-                      <TableCell className={`${CLASSE_TD} font-medium text-gray-800 dark:text-white/90`}>
-                        {permissao.nome}
-                      </TableCell>
-                      <TableCell className={CLASSE_TD}>
-                        <span className="rounded-lg bg-gray-100 px-2 py-1 text-theme-xs text-gray-700 dark:bg-white/5 dark:text-gray-300">
-                          {permissao.permissao}
-                        </span>
-                      </TableCell>
-                      <TableCell className={CLASSE_TD}>
-                        {ouTraco(permissao.descricao)}
-                      </TableCell>
-                      <TableCell className={CLASSE_TD}>
-                        <AcoesLinha
-                          caminhoVer={`/permissoes/${permissao.id}`}
-                          caminhoEditar={`/permissoes/${permissao.id}/editar`}
-                          aoExcluir={() => {
-                            setErroExclusao(null);
-                            setAlvo(permissao);
-                          }}
-                          podeVer={temPermissao("permissao.ver")}
-                          podeEditar={temPermissao("permissao.editar")}
-                          podeExcluir={temPermissao("permissao.excluir")}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            <Paginacao
-              paginacao={listagem.paginacao}
-              desabilitado={listagem.carregando}
-              aoMudarPagina={listagem.irParaPagina}
-            />
-          </>
-        )}
-      </div>
+          <TableBody>
+            {listagem.itens.map((permissao) => (
+              <TableRow key={permissao.id}>
+                <Celula destaque>{permissao.nome}</Celula>
+                <Celula>
+                  <span className="rounded-lg bg-gray-100 px-2 py-1 text-theme-xs text-gray-700 dark:bg-white/5 dark:text-gray-300">
+                    {permissao.permissao}
+                  </span>
+                </Celula>
+                <Celula className="whitespace-normal">
+                  {ouTraco(permissao.descricao)}
+                </Celula>
+                <Celula>
+                  <AcoesLinha
+                    caminhoVer={`/permissoes/${permissao.id}`}
+                    caminhoEditar={`/permissoes/${permissao.id}/editar`}
+                    aoExcluir={() => {
+                      setErroExclusao(null);
+                      setAlvo(permissao);
+                    }}
+                    podeVer={temPermissao("permissao.ver")}
+                    podeEditar={temPermissao("permissao.editar")}
+                    podeExcluir={temPermissao("permissao.excluir")}
+                  />
+                </Celula>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CartaoListagem>
 
       <ModalExclusao
         aberto={alvo !== null}

@@ -7,7 +7,8 @@ import { ChevronDownIcon, CloseIcon } from "../../icons";
 
 interface CampoAutocompleteProps<T> {
   id: string;
-  label: string;
+  /** Sem rótulo o campo fica compacto, para a barra de filtros. */
+  label?: string;
   /** Identificador selecionado (null quando nada foi escolhido). */
   valor: number | null;
   /** Rótulo do registro já selecionado — usado nas telas de edição. */
@@ -23,6 +24,7 @@ interface CampoAutocompleteProps<T> {
   dica?: string;
   obrigatorio?: boolean;
   desabilitado?: boolean;
+  className?: string;
 }
 
 /**
@@ -45,6 +47,7 @@ export default function CampoAutocomplete<T>({
   dica,
   obrigatorio = false,
   desabilitado = false,
+  className = "",
 }: CampoAutocompleteProps<T>) {
   const [termo, setTermo] = useState(rotuloSelecionado ?? "");
   const [rotuloAtual, setRotuloAtual] = useState(rotuloSelecionado ?? "");
@@ -129,11 +132,13 @@ export default function CampoAutocomplete<T>({
     : "border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:focus:border-brand-800";
 
   return (
-    <div>
-      <Label htmlFor={id}>
-        {label}
-        {obrigatorio && <span className="text-error-500">*</span>}
-      </Label>
+    <div className={className}>
+      {label && (
+        <Label htmlFor={id}>
+          {label}
+          {obrigatorio && <span className="text-error-500">*</span>}
+        </Label>
+      )}
 
       <div className="relative" ref={containerRef}>
         <input
@@ -141,6 +146,7 @@ export default function CampoAutocomplete<T>({
           name={id}
           type="text"
           autoComplete="off"
+          aria-label={label ?? placeholder}
           value={termo}
           placeholder={placeholder}
           disabled={desabilitado}

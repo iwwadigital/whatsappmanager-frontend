@@ -12,7 +12,7 @@ interface AcoesLinhaProps {
 }
 
 const CLASSE_ACAO =
-  "flex size-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-300";
+  "text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90";
 
 /** Ações da linha da tabela, filtradas pelas permissões do usuário. */
 export default function AcoesLinha({
@@ -29,20 +29,34 @@ export default function AcoesLinha({
     !(podeExcluir && aoExcluir);
 
   if (nenhumaAcao) {
-    return <span className="text-sm text-gray-400 dark:text-gray-500">—</span>;
+    return (
+      <span className="flex w-full justify-center text-sm text-gray-400 dark:text-gray-500">
+        —
+      </span>
+    );
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex w-full items-center justify-center gap-3">
       {podeVer && caminhoVer && (
-        <Link to={caminhoVer} title="Visualizar" className={CLASSE_ACAO}>
-          <EyeIcon className="size-4 fill-current" />
+        <Link
+          to={caminhoVer}
+          title="Visualizar"
+          aria-label="Visualizar"
+          className={CLASSE_ACAO}
+        >
+          <EyeIcon className="size-5 fill-current" />
         </Link>
       )}
 
       {podeEditar && caminhoEditar && (
-        <Link to={caminhoEditar} title="Editar" className={CLASSE_ACAO}>
-          <PencilIcon className="size-4 fill-current" />
+        <Link
+          to={caminhoEditar}
+          title="Editar"
+          aria-label="Editar"
+          className={CLASSE_ACAO}
+        >
+          <PencilIcon className="size-5 fill-current" />
         </Link>
       )}
 
@@ -50,10 +64,11 @@ export default function AcoesLinha({
         <button
           type="button"
           title="Excluir"
+          aria-label="Excluir"
           onClick={aoExcluir}
-          className={`${CLASSE_ACAO} hover:border-error-500 hover:text-error-500 dark:hover:text-error-500`}
+          className="text-gray-500 transition hover:text-error-500 dark:text-gray-400 dark:hover:text-error-500"
         >
-          <TrashBinIcon className="size-4 fill-current" />
+          <TrashBinIcon className="size-5 fill-current" />
         </button>
       )}
     </div>

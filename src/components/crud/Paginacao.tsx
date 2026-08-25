@@ -33,6 +33,9 @@ function montarPaginas(atual: number, total: number): (number | "...")[] {
   return paginas;
 }
 
+const CLASSE_NAVEGACAO =
+  "flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200";
+
 /** Paginação ligada ao bloco "pagination" devolvido pela API. */
 export default function Paginacao({
   paginacao,
@@ -43,27 +46,21 @@ export default function Paginacao({
     return null;
   }
 
-  const { current_page: atual, last_page: total, from, to } = paginacao;
-  const classeBotao =
-    "flex h-10 items-center justify-center rounded-lg px-3.5 text-sm font-medium text-gray-700 hover:bg-brand-500 hover:text-white disabled:pointer-events-none disabled:opacity-50 dark:text-gray-400 dark:hover:text-white";
+  const { current_page: atual, last_page: total } = paginacao;
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row">
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        Mostrando {from ?? 0} a {to ?? 0} de {paginacao.total} registro(s)
-      </p>
-
-      <div className="flex items-center gap-0.5">
+    <div className="flex justify-end">
+      <div className="flex items-center justify-center gap-4 px-3 py-3">
         <button
           type="button"
           disabled={desabilitado || atual <= 1}
           onClick={() => aoMudarPagina(atual - 1)}
-          className={classeBotao}
+          className={CLASSE_NAVEGACAO}
         >
           Anterior
         </button>
 
-        <ul className="hidden items-center gap-0.5 sm:flex">
+        <ul className="flex items-center gap-1">
           {montarPaginas(atual, total).map((pagina, indice) => (
             <li key={`${pagina}-${indice}`}>
               {pagina === "..." ? (
@@ -78,7 +75,7 @@ export default function Paginacao({
                   className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium ${
                     pagina === atual
                       ? "bg-brand-500 text-white"
-                      : "text-gray-700 hover:bg-brand-500 hover:text-white dark:text-gray-400 dark:hover:text-white"
+                      : "text-gray-700 hover:bg-brand-500/[0.08] hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-500"
                   }`}
                 >
                   {pagina}
@@ -88,17 +85,13 @@ export default function Paginacao({
           ))}
         </ul>
 
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
-          Página {atual} de {total}
-        </span>
-
         <button
           type="button"
           disabled={desabilitado || atual >= total}
           onClick={() => aoMudarPagina(atual + 1)}
-          className={classeBotao}
+          className={CLASSE_NAVEGACAO}
         >
-          Próxima
+          Próximo
         </button>
       </div>
     </div>
