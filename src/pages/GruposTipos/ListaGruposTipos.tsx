@@ -126,7 +126,7 @@ export default function ListaGruposTipos() {
               ]}
             />
 
-            <CampoData
+            {/* <CampoData
               id="filtro-criado-de"
               className={LARGURA_FILTRO}
               descricao="Criado a partir de"
@@ -146,7 +146,7 @@ export default function ListaGruposTipos() {
               aoAlterar={(valor) =>
                 listagem.definirFiltro("criado_ate", valor, true)
               }
-            />
+            /> */}
           </>
         }
         acoes={
