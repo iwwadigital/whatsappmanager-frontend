@@ -116,18 +116,6 @@ export default function FormularioUsuario({
           placeholder="Nome completo"
           erro={erros.nome?.[0]}
         />
-
-        <CampoTexto
-          id="email"
-          label="E-mail"
-          tipo="email"
-          obrigatorio
-          valor={email}
-          aoAlterar={setEmail}
-          placeholder="usuario@empresa.com.br"
-          erro={erros.email?.[0]}
-        />
-
         <CampoAutocomplete<UsuarioTipo>
           id="usuario_tipo_id"
           label="Tipo de usuário"
@@ -141,17 +129,23 @@ export default function FormularioUsuario({
           erro={erros.usuario_tipo_id?.[0]}
         />
 
-        <CampoAutocomplete<Empresa>
-          id="empresa_id"
-          label="Empresa"
-          valor={empresaId}
-          rotuloSelecionado={empresaRotulo}
-          buscar={buscarEmpresas}
-          obterValor={(item) => item.id}
-          obterRotulo={(item) => item.nome}
-          aoSelecionar={(item) => setEmpresaId(item ? item.id : null)}
-          dica="Opcional: deixe em branco para usuários sem empresa."
-          erro={erros.empresa_id?.[0]}
+        <CampoTexto
+          id="email"
+          label="E-mail"
+          tipo="email"
+          obrigatorio
+          valor={email}
+          aoAlterar={setEmail}
+          placeholder="usuario@empresa.com.br"
+          erro={erros.email?.[0]}
+        />
+
+        <CampoTelefone
+          id="telefone"
+          label="Telefone"
+          valor={telefone}
+          aoAlterar={setTelefone}
+          erro={erros.telefone?.[0]}
         />
 
         <CampoSenha
@@ -168,12 +162,17 @@ export default function FormularioUsuario({
           erro={erros.senha?.[0]}
         />
 
-        <CampoTelefone
-          id="telefone"
-          label="Telefone"
-          valor={telefone}
-          aoAlterar={setTelefone}
-          erro={erros.telefone?.[0]}
+         <CampoAutocomplete<Empresa>
+          id="empresa_id"
+          label="Empresa"
+          valor={empresaId}
+          rotuloSelecionado={empresaRotulo}
+          buscar={buscarEmpresas}
+          obterValor={(item) => item.id}
+          obterRotulo={(item) => item.nome}
+          aoSelecionar={(item) => setEmpresaId(item ? item.id : null)}
+          dica="Opcional: deixe em branco para usuários sem empresa."
+          erro={erros.empresa_id?.[0]}
         />
 
         <CampoAlternador
