@@ -2,11 +2,15 @@ import type { RespostaApi } from "../types/api";
 import type {
   Autenticacao,
   DadosEmpresa,
+  DadosGrupo,
+  DadosGrupoTipo,
   DadosPermissao,
   DadosUsuario,
   DadosUsuarioTipo,
   Empresa,
   EmpresaResumo,
+  Grupo,
+  GrupoTipo,
   Permissao,
   Usuario,
   UsuarioAutenticado,
@@ -37,6 +41,19 @@ export const empresasDisponiveisApi = {
       : ((resposta.empresas as EmpresaResumo[] | undefined) ?? []);
   },
 };
+
+/** Grupos e tipos de grupo são divididos pela empresa ativa (X-Empresa-Id). */
+export const gruposApi = criarRecurso<Grupo, DadosGrupo>({
+  caminho: "grupos",
+  chaveLista: "grupos",
+  chaveItem: "grupo",
+});
+
+export const gruposTiposApi = criarRecurso<GrupoTipo, DadosGrupoTipo>({
+  caminho: "grupos-tipos",
+  chaveLista: "grupos_tipos",
+  chaveItem: "grupo_tipo",
+});
 
 export const permissoesApi = criarRecurso<Permissao, DadosPermissao>({
   caminho: "permissoes",

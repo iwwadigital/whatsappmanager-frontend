@@ -8,6 +8,8 @@ export type {
   DadosEmpresa,
   CamposPersonalizados,
 } from "./empresa";
+export type { Grupo, GrupoResumo, DadosGrupo } from "./grupo";
+export type { GrupoTipo, GrupoTipoResumo, DadosGrupoTipo } from "./grupoTipo";
 export type { Permissao, DadosPermissao } from "./permissao";
 export type { UsuarioTipo, DadosUsuarioTipo } from "./usuarioTipo";
 export type { Usuario, DadosUsuario } from "./usuario";

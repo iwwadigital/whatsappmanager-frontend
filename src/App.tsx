@@ -24,6 +24,16 @@ import NovaPermissao from "./pages/Permissoes/NovaPermissao";
 import EditarPermissao from "./pages/Permissoes/EditarPermissao";
 import VerPermissao from "./pages/Permissoes/VerPermissao";
 
+import ListaGrupos from "./pages/Grupos/ListaGrupos";
+import NovoGrupo from "./pages/Grupos/NovoGrupo";
+import EditarGrupo from "./pages/Grupos/EditarGrupo";
+import VerGrupo from "./pages/Grupos/VerGrupo";
+
+import ListaGruposTipos from "./pages/GruposTipos/ListaGruposTipos";
+import NovoGrupoTipo from "./pages/GruposTipos/NovoGrupoTipo";
+import EditarGrupoTipo from "./pages/GruposTipos/EditarGrupoTipo";
+import VerGrupoTipo from "./pages/GruposTipos/VerGrupoTipo";
+
 import ListaEmpresas from "./pages/Empresas/ListaEmpresas";
 import NovaEmpresa from "./pages/Empresas/NovaEmpresa";
 import EditarEmpresa from "./pages/Empresas/EditarEmpresa";
@@ -90,6 +100,33 @@ export default function App() {
               <Route
                 path="/permissoes/:id/editar"
                 element={<EditarPermissao />}
+              />
+            </Route>
+
+            {/* Grupos */}
+            <Route element={<RotaComPermissao permissao="grupo.ver" />}>
+              <Route path="/grupos" element={<ListaGrupos />} />
+              <Route path="/grupos/:id" element={<VerGrupo />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="grupo.criar" />}>
+              <Route path="/grupos/novo" element={<NovoGrupo />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="grupo.editar" />}>
+              <Route path="/grupos/:id/editar" element={<EditarGrupo />} />
+            </Route>
+
+            {/* Tipos de grupo */}
+            <Route element={<RotaComPermissao permissao="grupo_tipo.ver" />}>
+              <Route path="/grupos-tipos" element={<ListaGruposTipos />} />
+              <Route path="/grupos-tipos/:id" element={<VerGrupoTipo />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="grupo_tipo.criar" />}>
+              <Route path="/grupos-tipos/novo" element={<NovoGrupoTipo />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="grupo_tipo.editar" />}>
+              <Route
+                path="/grupos-tipos/:id/editar"
+                element={<EditarGrupoTipo />}
               />
             </Route>
 

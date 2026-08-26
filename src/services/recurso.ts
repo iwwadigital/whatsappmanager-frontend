@@ -3,7 +3,7 @@ import type {
   RespostaApi,
   ResultadoLista,
 } from "../types/api";
-import { baixarArquivo, requisitar } from "./http";
+import { baixarArquivo, enviarArquivo, requisitar } from "./http";
 
 export interface ConfiguracaoRecurso {
   /** Caminho do recurso na API, sem barras (ex.: "usuarios"). */
@@ -26,6 +26,10 @@ export interface Recurso<T, D> {
     parametros?: ParametrosListagem;
     nomeArquivo?: string;
   }): Promise<void>;
+  /** POST /<recurso>/{id}/imagem — só nos recursos que têm imagem de capa. */
+  enviarImagem(id: number | string, arquivo: File): Promise<T>;
+  /** DELETE /<recurso>/{id}/imagem */
+  removerImagem(id: number | string): Promise<T>;
 }
 
 function extrairItem<T>(resposta: RespostaApi, chave: string): T {
@@ -106,6 +110,27 @@ export function criarRecurso<T, D>(
         parametros: opcoes.parametros,
         nomeArquivo: opcoes.nomeArquivo,
       });
+    },
+
+    /** POST /<recurso>/{id}/imagem — devolve o registro atualizado. */
+    async enviarImagem(id, arquivo) {
+      const resposta = await enviarArquivo({
+        caminho: `${caminho}/${id}/imagem`,
+        campo: "imagem",
+        arquivo,
+      });
+
+      return extrairItem<T>(resposta, chaveItem);
+    },
+
+    /** DELETE /<recurso>/{id}/imagem — devolve o registro atualizado. */
+    async removerImagem(id) {
+      const resposta = await requisitar({
+        metodo: "DELETE",
+        caminho: `${caminho}/${id}/imagem`,
+      });
+
+      return extrairItem<T>(resposta, chaveItem);
     },
   };
 }

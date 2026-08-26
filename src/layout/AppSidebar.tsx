@@ -13,6 +13,7 @@ import {
   BoxCubeIcon,
   ChevronDownIcon,
   GridIcon,
+  GroupIcon,
   HorizontaLDots,
   UserCircleIcon,
 } from "../icons";
@@ -41,6 +42,18 @@ const itensMenu: ItemMenu[] = [
     nome: "Início",
     icone: <GridIcon />,
     caminho: "/",
+  },
+  {
+    nome: "Grupos",
+    icone: <GroupIcon />,
+    subItens: [
+      { nome: "Grupos", caminho: "/grupos", permissao: "grupo.ver" },
+      {
+        nome: "Tipos de grupo",
+        caminho: "/grupos-tipos",
+        permissao: "grupo_tipo.ver",
+      },
+    ],
   },
   {
     nome: "Usuários",

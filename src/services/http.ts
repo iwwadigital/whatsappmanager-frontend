@@ -148,6 +148,11 @@ export async function requisitar({
     );
   }
 
+  return processarResposta(resposta);
+}
+
+/** Lê o envelope, trata 401 e converte qualquer falha em ErroApi. */
+async function processarResposta(resposta: Response): Promise<RespostaApi> {
   let corpo: RespostaApi | null = null;
 
   try {
@@ -179,6 +184,48 @@ export async function requisitar({
   }
 
   return corpo;
+}
+
+export interface OpcoesArquivo {
+  metodo?: MetodoHttp;
+  caminho: string;
+  /** Nome do campo do arquivo no FormData (ex.: "imagem"). */
+  campo: string;
+  arquivo: File;
+}
+
+/**
+ * Envio de arquivo (multipart/form-data) — usado pelos uploads de imagem.
+ * O Content-Type fica a cargo do navegador, que precisa montar o boundary.
+ */
+export async function enviarArquivo({
+  metodo = "POST",
+  caminho,
+  campo,
+  arquivo,
+}: OpcoesArquivo): Promise<RespostaApi> {
+  const url = `${URL_BASE}/${caminho.replace(/^\/+/, "")}`;
+  const corpo = new FormData();
+
+  corpo.append(campo, arquivo);
+
+  let resposta: Response;
+
+  try {
+    resposta = await fetch(url, {
+      method: metodo,
+      headers: { Accept: "application/json", ...cabecalhosAutenticacao() },
+      body: corpo,
+    });
+  } catch {
+    throw new ErroApi(
+      "Não foi possível se comunicar com o servidor. Verifique sua conexão.",
+      0,
+      "erro_servidor",
+    );
+  }
+
+  return processarResposta(resposta);
 }
 
 export interface OpcoesDownload {
