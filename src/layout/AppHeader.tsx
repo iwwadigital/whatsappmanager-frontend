@@ -1,10 +1,13 @@
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
+import { useEmpresaAtiva } from "../context/EmpresaAtivaContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
+import SeletorEmpresa from "../components/header/SeletorEmpresa";
 import UserDropdown from "../components/header/UserDropdown";
 
 const AppHeader: React.FC = () => {
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const { exibirSeletor } = useEmpresaAtiva();
 
   const alternar = () => {
     if (window.innerWidth >= 1280) {
@@ -15,7 +18,7 @@ const AppHeader: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+    <header className="sticky top-0 z-40 flex w-full flex-col border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="flex w-full items-center justify-between gap-2 px-3 py-3 sm:gap-4 lg:px-6">
         <div className="flex items-center gap-3">
           <button
@@ -75,11 +78,23 @@ const AppHeader: React.FC = () => {
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* No mobile o seletor desce para a segunda linha, para não
+              espremer o menu, o tema e o avatar em telas estreitas. */}
+          <SeletorEmpresa
+            id="empresa-ativa"
+            className="hidden sm:block sm:w-44 xl:w-56"
+          />
           <ThemeToggleButton />
           <UserDropdown />
         </div>
       </div>
+
+      {exibirSeletor && (
+        <div className="border-t border-gray-200 px-3 py-2 dark:border-gray-800 sm:hidden">
+          <SeletorEmpresa id="empresa-ativa-mobile" className="w-full" />
+        </div>
+      )}
     </header>
   );
 };

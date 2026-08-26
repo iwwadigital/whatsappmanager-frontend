@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
+import { jsonParaTexto } from "../../components/campos/CampoJson";
 import CabecalhoPagina from "../../components/crud/CabecalhoPagina";
 import ItemDetalhe from "../../components/crud/ItemDetalhe";
 import {
@@ -11,6 +12,7 @@ import { useRegistro } from "../../hooks/useRegistro";
 import { empresasApi } from "../../services/api";
 import type { Empresa } from "../../types/modelos";
 import { formatarDataHora } from "../../utils/formato";
+import { normalizarHorario } from "../../utils/horarios";
 
 export default function VerEmpresa() {
   const { id } = useParams();
@@ -18,6 +20,10 @@ export default function VerEmpresa() {
   const { registro, carregando, erro } = useRegistro<Empresa>(
     empresasApi.mostrar,
     id,
+  );
+
+  const camposPersonalizados = jsonParaTexto(
+    registro?.cadastros_campos_personalizados,
   );
 
   return (
@@ -62,6 +68,24 @@ export default function VerEmpresa() {
           <dl>
             <ItemDetalhe rotulo="Código">{registro.id}</ItemDetalhe>
             <ItemDetalhe rotulo="Nome">{registro.nome}</ItemDetalhe>
+            <ItemDetalhe rotulo="Horário dos alertas do dia">
+              {normalizarHorario(registro.horario_alertas_do_dia) || "—"}
+            </ItemDetalhe>
+            <ItemDetalhe rotulo="Máximo de administradores por grupo">
+              {registro.quantidade_max_admin_por_grupo}
+            </ItemDetalhe>
+            <ItemDetalhe rotulo="Dias para atualização do convite">
+              {registro.convite_quantidade_dias_atualizacao}
+            </ItemDetalhe>
+            <ItemDetalhe rotulo="Campos personalizados de cadastro">
+              {camposPersonalizados === "" ? (
+                "—"
+              ) : (
+                <pre className="max-h-64 overflow-auto rounded-lg bg-gray-50 p-3 font-mono text-xs text-gray-700 dark:bg-white/[0.03] dark:text-gray-300">
+                  {camposPersonalizados}
+                </pre>
+              )}
+            </ItemDetalhe>
             <ItemDetalhe rotulo="Cadastrada em">
               {formatarDataHora(registro.created_at)}
             </ItemDetalhe>

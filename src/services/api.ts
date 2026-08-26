@@ -6,6 +6,7 @@ import type {
   DadosUsuario,
   DadosUsuarioTipo,
   Empresa,
+  EmpresaResumo,
   Permissao,
   Usuario,
   UsuarioAutenticado,
@@ -21,6 +22,21 @@ export const empresasApi = criarRecurso<Empresa, DadosEmpresa>({
   chaveLista: "empresas",
   chaveItem: "empresa",
 });
+
+/**
+ * Empresas que o usuário pode escolher no seletor do header.
+ * Só exige autenticação (não depende da permissão `empresa.ver`).
+ */
+export const empresasDisponiveisApi = {
+  async listar(): Promise<EmpresaResumo[]> {
+    const resposta = await requisitar({ caminho: "empresas-disponiveis" });
+
+    // "aviso" = nenhuma empresa disponível.
+    return resposta.type === "aviso"
+      ? []
+      : ((resposta.empresas as EmpresaResumo[] | undefined) ?? []);
+  },
+};
 
 export const permissoesApi = criarRecurso<Permissao, DadosPermissao>({
   caminho: "permissoes",

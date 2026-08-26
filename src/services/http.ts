@@ -4,10 +4,17 @@ import type {
   RespostaApi,
   TipoResposta,
 } from "../types/api";
-import { lerToken, limparSessao } from "./armazenamento";
+import { lerEmpresaAtivaId, lerToken, limparSessao } from "./armazenamento";
 
 /** Evento disparado quando a API responde 401 (token ausente/expirado). */
 export const EVENTO_SESSAO_EXPIRADA = "wm:sessao-expirada";
+
+/**
+ * Cabeçalho com a empresa escolhida no header. Vai em toda requisição
+ * autenticada; o middleware `empresa` da API o ignora para usuários que já
+ * têm empresa própria.
+ */
+export const CABECALHO_EMPRESA = "X-Empresa-Id";
 
 const URL_BASE = (
   import.meta.env.VITE_API_URL ?? "http://localhost:8000/api"
@@ -63,6 +70,24 @@ export function montarParametros(parametros: ParametrosListagem = {}): string {
   return consulta ? `?${consulta}` : "";
 }
 
+/** Token da sessão + empresa ativa: o contexto de toda requisição autenticada. */
+function cabecalhosAutenticacao(): Record<string, string> {
+  const cabecalhos: Record<string, string> = {};
+  const token = lerToken();
+
+  if (token) {
+    cabecalhos.Authorization = `Bearer ${token}`;
+  }
+
+  const empresaId = lerEmpresaAtivaId();
+
+  if (empresaId !== null) {
+    cabecalhos[CABECALHO_EMPRESA] = String(empresaId);
+  }
+
+  return cabecalhos;
+}
+
 function montarCabecalhos(autenticar: boolean, temCorpo: boolean): HeadersInit {
   const cabecalhos: Record<string, string> = {
     Accept: "application/json",
@@ -73,11 +98,7 @@ function montarCabecalhos(autenticar: boolean, temCorpo: boolean): HeadersInit {
   }
 
   if (autenticar) {
-    const token = lerToken();
-
-    if (token) {
-      cabecalhos.Authorization = `Bearer ${token}`;
-    }
+    Object.assign(cabecalhos, cabecalhosAutenticacao());
   }
 
   return cabecalhos;
@@ -174,11 +195,10 @@ export async function baixarArquivo({
   nomeArquivo,
 }: OpcoesDownload): Promise<void> {
   const url = `${URL_BASE}/${caminho.replace(/^\/+/, "")}${montarParametros(parametros)}`;
-  const token = lerToken();
 
   const resposta = await fetch(url, {
     method: "GET",
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    headers: cabecalhosAutenticacao(),
   });
 
   if (resposta.status === 401) {

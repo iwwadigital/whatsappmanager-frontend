@@ -15,6 +15,12 @@ interface OpcoesListagem<T> {
   listar: (parametros?: ParametrosListagem) => Promise<ResultadoLista<T>>;
   filtrosIniciais?: Filtros;
   porPagina?: number;
+  /**
+   * Valor externo que refaz a consulta (voltando à primeira página) quando
+   * muda. Nas listagens divididas por empresa, passe o `empresaId` de
+   * `useEmpresaAtiva()`.
+   */
+  chaveRecarga?: string | number;
 }
 
 /**
@@ -25,10 +31,12 @@ export function useListagem<T>({
   listar,
   filtrosIniciais = {},
   porPagina = 15,
+  chaveRecarga,
 }: OpcoesListagem<T>) {
   const listarRef = useRef(listar);
   const iniciaisRef = useRef(filtrosIniciais);
   const requisicaoRef = useRef(0);
+  const chaveAnteriorRef = useRef(chaveRecarga);
 
   useEffect(() => {
     listarRef.current = listar;
@@ -45,6 +53,14 @@ export function useListagem<T>({
   );
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Trocar de empresa (ou de qualquer chave externa) recomeça na página 1.
+  // Ajuste de estado durante o render: evita a consulta descartada que um
+  // useEffect faria com a página anterior.
+  if (chaveAnteriorRef.current !== chaveRecarga) {
+    chaveAnteriorRef.current = chaveRecarga;
+    setPagina(1);
+  }
 
   const chaveFiltros = JSON.stringify(filtros);
   const chaveAplicados = JSON.stringify(aplicados);
@@ -65,10 +81,18 @@ export function useListagem<T>({
 
   const carregar = useCallback(async () => {
     const requisicao = requisicaoRef.current + 1;
+    // A empresa ativa vai no cabeçalho: guardamos a chave da requisição para
+    // descartar a resposta se ela mudar no meio do caminho.
+    const chaveDaRequisicao = chaveRecarga;
 
     requisicaoRef.current = requisicao;
     setCarregando(true);
     setErro(null);
+
+    /** Resposta de requisição antiga ou de outra empresa é descartada. */
+    const obsoleta = () =>
+      requisicaoRef.current !== requisicao ||
+      chaveAnteriorRef.current !== chaveDaRequisicao;
 
     try {
       const resultado = await listarRef.current({
@@ -77,8 +101,7 @@ export function useListagem<T>({
         por_pagina: porPagina,
       });
 
-      // Ignora respostas de requisições antigas.
-      if (requisicaoRef.current !== requisicao) return;
+      if (obsoleta()) return;
 
       setItens(resultado.itens);
       setPaginacao(resultado.paginacao);
@@ -87,17 +110,17 @@ export function useListagem<T>({
         setMensagemVazio(resultado.mensagem);
       }
     } catch (falha) {
-      if (requisicaoRef.current !== requisicao) return;
+      if (obsoleta()) return;
 
       setItens([]);
       setPaginacao(null);
       setErro(mensagemDoErro(falha));
     } finally {
-      if (requisicaoRef.current === requisicao) {
+      if (!obsoleta()) {
         setCarregando(false);
       }
     }
-  }, [aplicados, pagina, porPagina]);
+  }, [aplicados, pagina, porPagina, chaveRecarga]);
 
   useEffect(() => {
     void carregar();

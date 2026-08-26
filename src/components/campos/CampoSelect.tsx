@@ -15,6 +15,8 @@ interface CampoSelectProps {
   opcoes: OpcaoSelect[];
   /** Texto da primeira opção (valor vazio). */
   placeholder?: string;
+  /** Esconde a opção vazia — para selects que sempre têm um valor. */
+  ocultarPlaceholder?: boolean;
   erro?: string;
   dica?: string;
   obrigatorio?: boolean;
@@ -30,6 +32,7 @@ export default function CampoSelect({
   aoAlterar,
   opcoes,
   placeholder = "Selecione",
+  ocultarPlaceholder = false,
   erro,
   dica,
   obrigatorio = false,
@@ -62,12 +65,14 @@ export default function CampoSelect({
               : "text-gray-400 dark:text-gray-400"
           }`}
         >
-          <option
-            value=""
-            className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-          >
-            {placeholder}
-          </option>
+          {!ocultarPlaceholder && (
+            <option
+              value=""
+              className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
+            >
+              {placeholder}
+            </option>
+          )}
           {opcoes.map((opcao) => (
             <option
               key={opcao.valor}
