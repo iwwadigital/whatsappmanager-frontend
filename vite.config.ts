@@ -15,6 +15,9 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    allowedHosts: ['whatsappmanager-dev.iwwadigital.com.br']
+  },
   build: {
     rollupOptions: {
       onwarn(warning, warn) {
