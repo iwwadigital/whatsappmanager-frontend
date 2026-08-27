@@ -1,5 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
-import CampoTelefone, { formatarTelefone } from "../campos/CampoTelefone";
+import CampoTelefone, {
+  DDI_PADRAO,
+  formatarTelefoneInternacional,
+} from "../campos/CampoTelefone";
 import CampoTexto from "../campos/CampoTexto";
 import Carregador from "../campos/Carregador";
 import Button from "../ui/button/Button";
@@ -7,6 +10,9 @@ import { MensagemErro } from "../crud/EstadosLista";
 import type { ErrosValidacao } from "../../types/api";
 import type { DadosMembro, Membro } from "../../types/modelos";
 import { numeroValido, somenteDigitos } from "../../utils/formato";
+
+/** Cadastro novo já começa com o DDI do Brasil. */
+const NUMERO_INICIAL = formatarTelefoneInternacional(DDI_PADRAO);
 
 interface FormularioMembroProps {
   /** Registro em edição; ausente no cadastro. */
@@ -27,14 +33,18 @@ export default function FormularioMembro({
   aoEnviar,
   aoCancelar,
 }: FormularioMembroProps) {
-  const [numero, setNumero] = useState("");
+  const [numero, setNumero] = useState(NUMERO_INICIAL);
   const [nome, setNome] = useState("");
   const [identificador, setIdentificador] = useState("");
   // Validação do telefone no cliente, antes de chamar a API.
   const [erroNumero, setErroNumero] = useState<string | null>(null);
 
   useEffect(() => {
-    setNumero(registro ? formatarTelefone(registro.numero) : "");
+    setNumero(
+      registro
+        ? formatarTelefoneInternacional(registro.numero)
+        : NUMERO_INICIAL,
+    );
     setNome(registro?.nome ?? "");
     setIdentificador(registro?.identificador ?? "");
     setErroNumero(null);
@@ -44,7 +54,7 @@ export default function FormularioMembro({
     evento.preventDefault();
 
     if (!numeroValido(numero)) {
-      setErroNumero("Informe um número de telefone válido, com DDD.");
+      setErroNumero("Informe um número de telefone válido, com DDI e DDD.");
 
       return;
     }
@@ -76,12 +86,13 @@ export default function FormularioMembro({
           id="numero"
           label="Número"
           obrigatorio
+          internacional
           valor={numero}
           aoAlterar={(valor) => {
             setNumero(valor);
             setErroNumero(null);
           }}
-          dica="Celular ou fixo com DDD. É gravado sem máscara."
+          dica="Com DDI: +55 para o Brasil. É gravado só com dígitos."
           erro={erroNumero ?? erros.numero?.[0]}
         />
 

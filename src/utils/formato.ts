@@ -1,4 +1,7 @@
-import { formatarTelefone } from "../components/campos/CampoTelefone";
+import {
+  DDI_PADRAO,
+  formatarTelefoneInternacional,
+} from "../components/campos/CampoTelefone";
 
 /** Datas chegam da API no fuso America/Sao_Paulo, como "YYYY-MM-DD HH:mm:ss". */
 export function formatarDataHora(valor?: string | null): string {
@@ -30,23 +33,39 @@ export function ouTraco(valor?: string | null): string {
 }
 
 /**
- * Número de telefone válido no Brasil, só com dígitos — espelha a constante
- * `Membro::NUMERO_REGEX` da API: DDD (11 a 99) + celular (9 + 8 dígitos)
- * ou fixo (2 a 8 + 7 dígitos).
+ * Número do Brasil, só com dígitos — espelha `Membro::NUMERO_REGEX_BR` da
+ * API: DDI 55 + DDD (11 a 99) + celular (9 + 8 dígitos) ou fixo (2 a 8 + 7).
  */
-export const NUMERO_REGEX = /^[1-9][1-9](?:9\d{8}|[2-8]\d{7})$/;
+export const NUMERO_REGEX_BR = /^55[1-9][1-9](?:9\d{8}|[2-8]\d{7})$/;
+
+/**
+ * Demais países (E.164), espelhando `Membro::NUMERO_REGEX_INTERNACIONAL`:
+ * código do país (nunca começa em zero) + assinante, de 8 a 15 dígitos.
+ */
+export const NUMERO_REGEX_INTERNACIONAL = /^[1-9]\d{7,14}$/;
 
 /** Tira a máscara: é assim que o número vai para a API. */
 export function somenteDigitos(valor?: string | null): string {
   return (valor ?? "").replace(/\D/g, "");
 }
 
-/** O número informado é um telefone válido? */
+/**
+ * O número informado é um telefone válido?
+ *
+ * Com DDI 55 vale a regra completa do Brasil; nos demais países, só o
+ * formato E.164 — a mesma decisão da API.
+ */
 export function numeroValido(valor?: string | null): boolean {
-  return NUMERO_REGEX.test(somenteDigitos(valor));
+  const digitos = somenteDigitos(valor);
+
+  return digitos.startsWith(DDI_PADRAO)
+    ? NUMERO_REGEX_BR.test(digitos)
+    : NUMERO_REGEX_INTERNACIONAL.test(digitos);
 }
 
-/** Número gravado sem máscara → (00) 00000-0000; vazio vira traço. */
+/** Número gravado sem máscara → +55 (00) 00000-0000; vazio vira traço. */
 export function formatarNumero(valor?: string | null): string {
-  return valor && valor.trim() !== "" ? formatarTelefone(valor) : "—";
+  return valor && valor.trim() !== ""
+    ? formatarTelefoneInternacional(valor)
+    : "—";
 }
