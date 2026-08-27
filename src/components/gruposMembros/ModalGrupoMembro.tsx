@@ -5,17 +5,30 @@ import Carregador from "../campos/Carregador";
 import { MensagemErro } from "../crud/EstadosLista";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
-import { criarGruposMembrosApi, membrosApi } from "../../services/api";
+import { membrosApi } from "../../services/api";
 import { ErroApi, mensagemDoErro } from "../../services/http";
 import type { ErrosValidacao } from "../../types/api";
-import type { GrupoMembro, Membro } from "../../types/modelos";
+import type {
+  DadosGrupoMembro,
+  GrupoMembro,
+  Membro,
+} from "../../types/modelos";
 import { formatarNumero, ouTraco } from "../../utils/formato";
 
 interface ModalGrupoMembroProps {
   aberto: boolean;
-  grupoId: number | string;
   /** Vínculo em edição; ausente quando é um cadastro. */
   registro?: GrupoMembro | null;
+  titulo?: string;
+  descricao?: string;
+  /**
+   * Grava o vínculo e devolve a mensagem de sucesso da API.
+   *
+   * Quem chama decide o destino: adicionar direto no grupo
+   * (`criarGruposMembrosApi`) ou deixar o sistema escolher o grupo do tipo
+   * (`criarGruposTiposMembrosApi`).
+   */
+  salvar: (dados: DadosGrupoMembro) => Promise<string>;
   aoFechar: () => void;
   /** Chamado depois de salvar, com a mensagem devolvida pela API. */
   aoSalvar: (mensagem: string) => void;
@@ -34,8 +47,10 @@ function rotuloMembro(membro: { nome: string | null; numero: string }): string {
  */
 export default function ModalGrupoMembro({
   aberto,
-  grupoId,
   registro,
+  titulo,
+  descricao,
+  salvar,
   aoFechar,
   aoSalvar,
 }: ModalGrupoMembroProps) {
@@ -80,22 +95,13 @@ export default function ModalGrupoMembro({
     setErros({});
     setErroGeral(null);
 
-    const api = criarGruposMembrosApi(grupoId);
-    const dados = { membro_id: membroId, admin, status };
-
     try {
-      if (edicao) {
-        await api.atualizar(membroId, dados);
-        aoSalvar("Membro do grupo atualizado com sucesso.");
-      } else {
-        await api.criar(dados);
-        aoSalvar("Membro adicionado ao grupo com sucesso.");
-      }
+      aoSalvar(await salvar({ membro_id: membroId, admin, status }));
     } catch (falha) {
       if (falha instanceof ErroApi && falha.ehValidacao) {
         setErros(falha.erros);
       } else {
-        // 409 (alerta): o membro já está no grupo.
+        // 409 (alerta): membro já está no grupo, ou grupo sem vaga.
         setErroGeral(mensagemDoErro(falha));
       }
     } finally {
@@ -107,6 +113,15 @@ export default function ModalGrupoMembro({
     ? rotuloMembro(registro.membro)
     : undefined;
 
+  const tituloExibido =
+    titulo ?? (edicao ? "Editar membro do grupo" : "Adicionar membro");
+
+  const descricaoExibida =
+    descricao ??
+    (edicao
+      ? "O membro não pode ser trocado; ajuste apenas as permissões e o status."
+      : "Escolha o membro que entrará no grupo.");
+
   return (
     <Modal
       isOpen={aberto}
@@ -115,12 +130,10 @@ export default function ModalGrupoMembro({
       className="max-w-[520px] p-5 sm:p-6 lg:p-8"
     >
       <h4 className="mb-1 text-lg font-semibold text-gray-800 dark:text-white/90">
-        {edicao ? "Editar membro do grupo" : "Adicionar membro"}
+        {tituloExibido}
       </h4>
       <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
-        {edicao
-          ? "O membro não pode ser trocado; ajuste apenas as permissões e o status."
-          : "Escolha o membro que entrará no grupo."}
+        {descricaoExibida}
       </p>
 
       <form onSubmit={enviar}>
@@ -143,9 +156,7 @@ export default function ModalGrupoMembro({
               buscar={buscarMembros}
               obterValor={(membro) => membro.id}
               obterRotulo={(membro) => rotuloMembro(membro)}
-              obterDescricao={(membro) =>
-                membro.identificador ?? undefined
-              }
+              obterDescricao={(membro) => membro.identificador ?? undefined}
               placeholder="Busque por nome, número ou identificador"
               erro={erros.membro_id?.[0]}
             />

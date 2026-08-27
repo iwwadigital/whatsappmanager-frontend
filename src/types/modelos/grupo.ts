@@ -28,6 +28,8 @@ export interface Grupo extends GrupoResumo {
   cheio: boolean;
   empresa?: EmpresaResumo | null;
   tipos?: GrupoTipoResumo[];
+  /** Quantidade de membros vinculados (vem do `show`, via withCount). */
+  membros_count?: number;
   created_at?: string | null;
   updated_at?: string | null;
 }

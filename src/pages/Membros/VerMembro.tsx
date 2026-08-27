@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import BadgeStatus from "../../components/crud/BadgeStatus";
+import Badge from "../../components/ui/badge/Badge";
 import CabecalhoPagina from "../../components/crud/CabecalhoPagina";
 import ItemDetalhe from "../../components/crud/ItemDetalhe";
 import {
@@ -76,6 +77,30 @@ export default function VerMembro() {
             </ItemDetalhe>
             <ItemDetalhe rotulo="Status">
               <BadgeStatus ativo={ativo} />
+            </ItemDetalhe>
+            <ItemDetalhe rotulo="Grupos">
+              {registro.grupos && registro.grupos.length > 0 ? (
+                <span className="flex flex-wrap gap-2">
+                  {registro.grupos.map((grupo) => (
+                    <Link
+                      key={grupo.id}
+                      to={`/grupos//membros`}
+                      className="inline-flex"
+                      title={`Ver os membros de `}
+                    >
+                      <Badge
+                        size="sm"
+                        color={grupo.pivot?.admin ? "info" : "light"}
+                      >
+                        {grupo.nome}
+                        {grupo.pivot?.admin ? " · admin" : ""}
+                      </Badge>
+                    </Link>
+                  ))}
+                </span>
+              ) : (
+                "Não está em nenhum grupo."
+              )}
             </ItemDetalhe>
             <ItemDetalhe rotulo="Data de criação">
               {formatarDataHora(registro.created_at)}

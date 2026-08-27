@@ -7,6 +7,7 @@ import AcoesLinha from "../../components/crud/AcoesLinha";
 import BadgeStatus from "../../components/crud/BadgeStatus";
 import ModalExclusao from "../../components/crud/ModalExclusao";
 import ModalGrupoMembro from "../../components/gruposMembros/ModalGrupoMembro";
+import ResumoOcupacao from "../../components/gruposMembros/ResumoOcupacao";
 import CampoBusca from "../../components/campos/CampoBusca";
 import {
   Celula,
@@ -26,7 +27,11 @@ import { useListagem } from "../../hooks/useListagem";
 import { useRegistro } from "../../hooks/useRegistro";
 import { criarGruposMembrosApi, gruposApi } from "../../services/api";
 import { mensagemDoErro } from "../../services/http";
-import type { Grupo, GrupoMembro } from "../../types/modelos";
+import type {
+  DadosGrupoMembro,
+  Grupo,
+  GrupoMembro,
+} from "../../types/modelos";
 import { formatarNumero, ouTraco } from "../../utils/formato";
 
 const FILTROS_INICIAIS = { nome: "" };
@@ -40,7 +45,11 @@ export default function MembrosDoGrupo() {
   const grupoId = id ?? "";
   const api = useMemo(() => criarGruposMembrosApi(grupoId), [grupoId]);
 
-  const { registro: grupo } = useRegistro<Grupo>(gruposApi.mostrar, id);
+  // O `show` traz membros_count, participantes e o máximo — o resumo do topo.
+  const { registro: grupo, recarregar: recarregarGrupo } = useRegistro<Grupo>(
+    gruposApi.mostrar,
+    id,
+  );
 
   const listagem = useListagem<GrupoMembro>({
     listar: api.listar,
@@ -65,12 +74,26 @@ export default function MembrosDoGrupo() {
     setModalAberto(true);
   };
 
+  /** Cadastro e edição do vínculo; a rota recebe o id do membro. */
+  const salvarVinculo = async (dados: DadosGrupoMembro): Promise<string> => {
+    if (emEdicao) {
+      await api.atualizar(emEdicao.membro_id, dados);
+
+      return "Membro do grupo atualizado com sucesso.";
+    }
+
+    await api.criar(dados);
+
+    return "Membro adicionado ao grupo com sucesso.";
+  };
+
   const aoSalvar = async (retorno: string) => {
     setModalAberto(false);
     setEmEdicao(null);
     setMensagem(retorno);
 
-    await listagem.recarregar();
+    // Entrar no grupo mexe na contagem de participantes: o resumo recarrega.
+    await Promise.all([listagem.recarregar(), recarregarGrupo()]);
   };
 
   const excluir = async () => {
@@ -91,6 +114,8 @@ export default function MembrosDoGrupo() {
       } else {
         await listagem.recarregar();
       }
+
+      await recarregarGrupo();
     } catch (falha) {
       setErroExclusao(mensagemDoErro(falha));
     } finally {
@@ -122,6 +147,12 @@ export default function MembrosDoGrupo() {
             Voltar
           </Link>
         }
+      />
+
+      <ResumoOcupacao
+        membros={grupo?.membros_count}
+        quantidadeParticipantes={grupo?.quantidade_participantes}
+        quantidadeParticipantesMax={grupo?.quantidade_participantes_max}
       />
 
       <CartaoListagem
@@ -195,8 +226,8 @@ export default function MembrosDoGrupo() {
 
       <ModalGrupoMembro
         aberto={modalAberto}
-        grupoId={grupoId}
         registro={emEdicao}
+        salvar={salvarVinculo}
         aoFechar={() => {
           setModalAberto(false);
           setEmEdicao(null);

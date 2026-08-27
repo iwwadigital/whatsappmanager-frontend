@@ -8,6 +8,7 @@ import AcoesLinha from "../../components/crud/AcoesLinha";
 import AvatarNome from "../../components/crud/AvatarNome";
 import BadgeStatus from "../../components/crud/BadgeStatus";
 import ModalExclusao from "../../components/crud/ModalExclusao";
+import ModalAlocarMembro from "../../components/gruposMembros/ModalAlocarMembro";
 import CampoBusca from "../../components/campos/CampoBusca";
 import CampoSelect from "../../components/campos/CampoSelect";
 import {
@@ -26,6 +27,7 @@ import { useEmpresaAtiva } from "../../context/EmpresaAtivaContext";
 import { useListagem } from "../../hooks/useListagem";
 import { gruposTiposApi } from "../../services/api";
 import { mensagemDoErro } from "../../services/http";
+import { MultiUserIcon } from "../../icons";
 import type { GrupoTipo } from "../../types/modelos";
 import { ouTraco } from "../../utils/formato";
 
@@ -55,6 +57,8 @@ export default function ListaGruposTipos() {
     (local.state as { mensagem?: string } | null)?.mensagem ?? null,
   );
   const [alvo, setAlvo] = useState<GrupoTipo | null>(null);
+  // Alocação automática: o modal é o mesmo, mas o destino é o tipo de grupo.
+  const [alocando, setAlocando] = useState<GrupoTipo | null>(null);
   const [excluindo, setExcluindo] = useState(false);
   const [erroExclusao, setErroExclusao] = useState<string | null>(null);
 
@@ -184,6 +188,19 @@ export default function ListaGruposTipos() {
                 </Celula>
                 <Celula>
                   <AcoesLinha
+                    extra={
+                      temPermissao("grupo_membro.criar") ? (
+                        <button
+                          type="button"
+                          title="Adicionar membro"
+                          aria-label="Adicionar membro"
+                          onClick={() => setAlocando(tipo)}
+                          className="text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90"
+                        >
+                          <MultiUserIcon className="size-5 fill-current" />
+                        </button>
+                      ) : undefined
+                    }
                     caminhoVer={`/grupos-tipos/${tipo.id}`}
                     caminhoEditar={`/grupos-tipos/${tipo.id}/editar`}
                     aoExcluir={() => {
@@ -200,6 +217,15 @@ export default function ListaGruposTipos() {
           </TableBody>
         </Table>
       </CartaoListagem>
+
+      <ModalAlocarMembro
+        grupoTipo={alocando}
+        aoFechar={() => setAlocando(null)}
+        aoAlocar={(retorno) => {
+          setAlocando(null);
+          setMensagem(retorno);
+        }}
+      />
 
       <ModalExclusao
         aberto={alvo !== null}

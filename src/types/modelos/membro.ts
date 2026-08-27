@@ -9,10 +9,23 @@ export interface MembroResumo {
   identificador: string | null;
 }
 
+/** Grupo em que o membro está alocado (vem do `show`). */
+export interface MembroGrupo {
+  id: number;
+  nome: string;
+  pivot?: {
+    admin: boolean;
+    status: boolean;
+    created_at?: string | null;
+  };
+}
+
 /** Model: App\Models\Membro\Membro (tabela "membros"). */
 export interface Membro extends MembroResumo {
   empresa_id: number;
   empresa?: EmpresaResumo | null;
+  /** Grupos em que o membro está alocado; só vem no `show`. */
+  grupos?: MembroGrupo[];
   created_at?: string | null;
   updated_at?: string | null;
   /** Preenchido na exclusão: é ele que define o status do membro. */

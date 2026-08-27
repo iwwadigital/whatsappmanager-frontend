@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import AvatarNome from "../../components/crud/AvatarNome";
@@ -7,7 +8,9 @@ import ItemDetalhe from "../../components/crud/ItemDetalhe";
 import {
   EstadoCarregando,
   MensagemErro,
+  MensagemSucesso,
 } from "../../components/crud/EstadosLista";
+import ModalAlocarMembro from "../../components/gruposMembros/ModalAlocarMembro";
 import Badge from "../../components/ui/badge/Badge";
 import { useAutenticacao } from "../../context/AutenticacaoContext";
 import { useRegistro } from "../../hooks/useRegistro";
@@ -22,6 +25,10 @@ export default function VerGrupoTipo() {
     gruposTiposApi.mostrar,
     id,
   );
+
+  // Alocação automática de membro neste tipo de grupo.
+  const [alocando, setAlocando] = useState(false);
+  const [mensagem, setMensagem] = useState<string | null>(null);
 
   return (
     <div>
@@ -44,6 +51,15 @@ export default function VerGrupoTipo() {
             >
               Voltar
             </Link>
+            {registro && temPermissao("grupo_membro.criar") && (
+              <button
+                type="button"
+                onClick={() => setAlocando(true)}
+                className="inline-flex items-center justify-center rounded-lg bg-white px-4 py-3 text-sm text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
+              >
+                Adicionar membro
+              </button>
+            )}
             {registro && temPermissao("grupo_tipo.editar") && (
               <Link
                 to={`/grupos-tipos/${registro.id}/editar`}
@@ -54,6 +70,21 @@ export default function VerGrupoTipo() {
             )}
           </>
         }
+      />
+
+      {mensagem && (
+        <div className="mb-4">
+          <MensagemSucesso mensagem={mensagem} />
+        </div>
+      )}
+
+      <ModalAlocarMembro
+        grupoTipo={alocando ? registro : null}
+        aoFechar={() => setAlocando(false)}
+        aoAlocar={(retorno) => {
+          setAlocando(false);
+          setMensagem(retorno);
+        }}
       />
 
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">

@@ -94,6 +94,32 @@ export function criarGruposMembrosApi(grupoId: number | string) {
   });
 }
 
+/**
+ * Alocação automática de um membro em um tipo de grupo: a API escolhe o
+ * grupo com menos participantes que ainda tem vaga — ou cria um novo.
+ *
+ * Não usa `criarRecurso` porque aqui a **mensagem** da API é o resultado que
+ * interessa: é ela que diz em qual grupo o membro entrou, e se o grupo
+ * precisou ser criado.
+ */
+export const gruposTiposMembrosApi = {
+  async alocar(
+    grupoTipoId: number | string,
+    dados: DadosGrupoMembro,
+  ): Promise<{ vinculo: GrupoMembro; mensagem: string }> {
+    const resposta = await requisitar({
+      metodo: "POST",
+      caminho: `grupos-tipos/${grupoTipoId}/membros`,
+      dados,
+    });
+
+    return {
+      vinculo: resposta.grupo_membro as GrupoMembro,
+      mensagem: resposta.message,
+    };
+  },
+};
+
 /** Log de atividades dos grupos — somente leitura (apenas `listar`). */
 export const gruposAtividadesApi = criarRecurso<GrupoAtividade, never>({
   caminho: "grupos-atividades",
