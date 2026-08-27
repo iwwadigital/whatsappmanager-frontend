@@ -24,6 +24,14 @@ import NovaPermissao from "./pages/Permissoes/NovaPermissao";
 import EditarPermissao from "./pages/Permissoes/EditarPermissao";
 import VerPermissao from "./pages/Permissoes/VerPermissao";
 
+import ListaAcoes from "./pages/Acoes/ListaAcoes";
+import EditarAcao from "./pages/Acoes/EditarAcao";
+
+import ListaAcoesTipos from "./pages/AcoesTipos/ListaAcoesTipos";
+import NovoAcaoTipo from "./pages/AcoesTipos/NovoAcaoTipo";
+import EditarAcaoTipo from "./pages/AcoesTipos/EditarAcaoTipo";
+import VerAcaoTipo from "./pages/AcoesTipos/VerAcaoTipo";
+
 import ListaGrupos from "./pages/Grupos/ListaGrupos";
 import NovoGrupo from "./pages/Grupos/NovoGrupo";
 import EditarGrupo from "./pages/Grupos/EditarGrupo";
@@ -166,6 +174,29 @@ export default function App() {
               <Route
                 path="/grupos-tipos/:id/editar"
                 element={<EditarGrupoTipo />}
+              />
+            </Route>
+
+            {/* Ações (sem cadastro: são criadas pelo sistema) */}
+            <Route element={<RotaComPermissao permissao="acao.ver" />}>
+              <Route path="/acoes" element={<ListaAcoes />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="acao.editar" />}>
+              <Route path="/acoes/:id/editar" element={<EditarAcao />} />
+            </Route>
+
+            {/* Tipos de ação */}
+            <Route element={<RotaComPermissao permissao="acao_tipo.ver" />}>
+              <Route path="/acoes-tipos" element={<ListaAcoesTipos />} />
+              <Route path="/acoes-tipos/:id" element={<VerAcaoTipo />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="acao_tipo.criar" />}>
+              <Route path="/acoes-tipos/novo" element={<NovoAcaoTipo />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="acao_tipo.editar" />}>
+              <Route
+                path="/acoes-tipos/:id/editar"
+                element={<EditarAcaoTipo />}
               />
             </Route>
 

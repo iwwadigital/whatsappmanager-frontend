@@ -2,6 +2,8 @@
  * Models da API espelhados no frontend — um arquivo por model.
  * Importe daqui (`types/modelos`) ou direto do arquivo do model.
  */
+export type { Acao, DadosAcao } from "./acao";
+export type { AcaoTipo, AcaoTipoResumo, DadosAcaoTipo } from "./acaoTipo";
 export type {
   Empresa,
   EmpresaResumo,

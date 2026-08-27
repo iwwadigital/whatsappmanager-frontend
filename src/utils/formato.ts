@@ -69,3 +69,29 @@ export function formatarNumero(valor?: string | null): string {
     ? formatarTelefoneInternacional(valor)
     : "—";
 }
+
+/**
+ * Data/hora da API ("YYYY-MM-DD HH:mm:ss") → valor do input
+ * `datetime-local` ("YYYY-MM-DDTHH:mm"). Vazio devolve string vazia.
+ */
+export function paraCampoDataHora(valor?: string | null): string {
+  if (!valor) {
+    return "";
+  }
+
+  const partes = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/.exec(valor);
+
+  return partes ? `${partes[1]}T${partes[2]}` : "";
+}
+
+/**
+ * Valor do input `datetime-local` → o formato que a API grava.
+ * Campo em branco vira null (remove o agendamento).
+ */
+export function deCampoDataHora(valor: string): string | null {
+  if (valor.trim() === "") {
+    return null;
+  }
+
+  return `${valor.replace("T", " ")}:00`.slice(0, 19);
+}

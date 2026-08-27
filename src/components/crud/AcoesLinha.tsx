@@ -4,6 +4,8 @@ import { EyeIcon, PencilIcon, TrashBinIcon } from "../../icons";
 
 interface AcoesLinhaProps {
   caminhoVer?: string;
+  /** Visualização em modal: usada quando o recurso não tem página de detalhe. */
+  aoVisualizar?: () => void;
   caminhoEditar?: string;
   /** Edição em modal: usada quando o recurso não tem página de edição. */
   aoEditar?: () => void;
@@ -22,6 +24,7 @@ const CLASSE_ACAO =
 /** Ações da linha da tabela, filtradas pelas permissões do usuário. */
 export default function AcoesLinha({
   caminhoVer,
+  aoVisualizar,
   caminhoEditar,
   aoEditar,
   aoExcluir,
@@ -32,7 +35,7 @@ export default function AcoesLinha({
 }: AcoesLinhaProps) {
   const nenhumaAcao =
     !extra &&
-    !(podeVer && caminhoVer) &&
+    !(podeVer && (caminhoVer || aoVisualizar)) &&
     !(podeEditar && (caminhoEditar || aoEditar)) &&
     !(podeExcluir && aoExcluir);
 
@@ -57,6 +60,18 @@ export default function AcoesLinha({
         >
           <EyeIcon className="size-5 fill-current" />
         </Link>
+      )}
+
+      {podeVer && !caminhoVer && aoVisualizar && (
+        <button
+          type="button"
+          title="Visualizar"
+          aria-label="Visualizar"
+          onClick={aoVisualizar}
+          className={CLASSE_ACAO}
+        >
+          <EyeIcon className="size-5 fill-current" />
+        </button>
       )}
 
       {podeEditar && caminhoEditar && (

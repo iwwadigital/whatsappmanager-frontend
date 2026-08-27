@@ -10,6 +10,7 @@ import { Link, useLocation } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { useAutenticacao } from "../context/AutenticacaoContext";
 import {
+  BoltIcon,
   BoxCubeIcon,
   ChevronDownIcon,
   GridIcon,
@@ -58,6 +59,18 @@ const itensMenu: ItemMenu[] = [
         nome: "Atividades",
         caminho: "/grupos-atividades",
         permissao: "grupo_atividade.ver",
+      },
+    ],
+  },
+  {
+    nome: "Ações",
+    icone: <BoltIcon />,
+    subItens: [
+      { nome: "Ações", caminho: "/acoes", permissao: "acao.ver" },
+      {
+        nome: "Tipos de ação",
+        caminho: "/acoes-tipos",
+        permissao: "acao_tipo.ver",
       },
     ],
   },

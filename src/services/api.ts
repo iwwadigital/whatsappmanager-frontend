@@ -1,6 +1,10 @@
 import type { RespostaApi } from "../types/api";
 import type {
+  Acao,
+  AcaoTipo,
   Autenticacao,
+  DadosAcao,
+  DadosAcaoTipo,
   DadosEmpresa,
   DadosGrupo,
   DadosGrupoMembro,
@@ -25,6 +29,23 @@ import { requisitar } from "./http";
 import { criarRecurso } from "./recurso";
 
 /* ------------------------------- Recursos ------------------------------- */
+
+/** Catálogo global de tipos de ação (não é dividido por empresa). */
+export const acoesTiposApi = criarRecurso<AcaoTipo, DadosAcaoTipo>({
+  caminho: "acoes-tipos",
+  chaveLista: "acoes_tipos",
+  chaveItem: "acao_tipo",
+});
+
+/**
+ * Ações da empresa ativa. A API não tem `store`: a ação é criada pelo
+ * sistema, então `criar()` deste recurso não deve ser usado.
+ */
+export const acoesApi = criarRecurso<Acao, DadosAcao>({
+  caminho: "acoes",
+  chaveLista: "acoes",
+  chaveItem: "acao",
+});
 
 export const empresasApi = criarRecurso<Empresa, DadosEmpresa>({
   caminho: "empresas",
