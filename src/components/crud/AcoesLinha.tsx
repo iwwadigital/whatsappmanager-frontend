@@ -1,14 +1,19 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { EyeIcon, PencilIcon, TrashBinIcon } from "../../icons";
 
 interface AcoesLinhaProps {
   caminhoVer?: string;
   caminhoEditar?: string;
+  /** Edição em modal: usada quando o recurso não tem página de edição. */
+  aoEditar?: () => void;
   aoExcluir?: () => void;
   /** Cada ação só aparece quando o usuário tem a permissão correspondente. */
   podeVer?: boolean;
   podeEditar?: boolean;
   podeExcluir?: boolean;
+  /** Ações extras da linha (já filtradas por permissão pela tela). */
+  extra?: ReactNode;
 }
 
 const CLASSE_ACAO =
@@ -18,14 +23,17 @@ const CLASSE_ACAO =
 export default function AcoesLinha({
   caminhoVer,
   caminhoEditar,
+  aoEditar,
   aoExcluir,
   podeVer = false,
   podeEditar = false,
   podeExcluir = false,
+  extra,
 }: AcoesLinhaProps) {
   const nenhumaAcao =
+    !extra &&
     !(podeVer && caminhoVer) &&
-    !(podeEditar && caminhoEditar) &&
+    !(podeEditar && (caminhoEditar || aoEditar)) &&
     !(podeExcluir && aoExcluir);
 
   if (nenhumaAcao) {
@@ -38,6 +46,8 @@ export default function AcoesLinha({
 
   return (
     <div className="flex w-full items-center justify-center gap-3">
+      {extra}
+
       {podeVer && caminhoVer && (
         <Link
           to={caminhoVer}
@@ -58,6 +68,18 @@ export default function AcoesLinha({
         >
           <PencilIcon className="size-5 fill-current" />
         </Link>
+      )}
+
+      {podeEditar && !caminhoEditar && aoEditar && (
+        <button
+          type="button"
+          title="Editar"
+          aria-label="Editar"
+          onClick={aoEditar}
+          className={CLASSE_ACAO}
+        >
+          <PencilIcon className="size-5 fill-current" />
+        </button>
       )}
 
       {podeExcluir && aoExcluir && (

@@ -9,7 +9,6 @@ import AvatarNome from "../../components/crud/AvatarNome";
 import BadgeStatus from "../../components/crud/BadgeStatus";
 import ModalExclusao from "../../components/crud/ModalExclusao";
 import CampoBusca from "../../components/campos/CampoBusca";
-import CampoData from "../../components/campos/CampoData";
 import CampoSelect from "../../components/campos/CampoSelect";
 import {
   Celula,

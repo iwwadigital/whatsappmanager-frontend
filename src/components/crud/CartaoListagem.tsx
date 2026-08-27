@@ -22,6 +22,11 @@ interface CartaoListagemProps {
   vazio: boolean;
   paginacao: DadosPaginacao | null;
   aoMudarPagina: (pagina: number) => void;
+  /**
+   * Alinhamento dos filtros na barra. Use "end" quando os campos tiverem
+   * rótulo, para que todos fiquem alinhados pela base.
+   */
+  alinharFiltros?: "center" | "end";
   /** A tabela da listagem. */
   children: ReactNode;
 }
@@ -40,8 +45,12 @@ export default function CartaoListagem({
   vazio,
   paginacao,
   aoMudarPagina,
+  alinharFiltros = "center",
   children,
 }: CartaoListagemProps) {
+  const alinhamento =
+    alinharFiltros === "end" ? "sm:items-end" : "sm:items-center";
+
   return (
     <div>
       {titulo && (
@@ -64,9 +73,11 @@ export default function CartaoListagem({
 
       <div className="rounded-xl bg-white dark:bg-white/[0.03]">
         <div
-          className={`flex flex-col gap-2 rounded-t-xl border-b-0 px-4 py-4 sm:flex-row sm:items-center sm:justify-between ${CLASSE_BORDA}`}
+          className={`flex flex-col gap-2 rounded-t-xl border-b-0 px-4 py-4 sm:flex-row sm:justify-between ${alinhamento} ${CLASSE_BORDA}`}
         >
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <div
+            className={`flex flex-col gap-2 sm:flex-row sm:flex-wrap ${alinhamento}`}
+          >
             {filtros}
           </div>
 

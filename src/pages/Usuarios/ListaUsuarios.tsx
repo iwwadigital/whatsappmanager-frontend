@@ -26,7 +26,6 @@ import { useListagem } from "../../hooks/useListagem";
 import { empresasApi, usuariosApi, usuariosTiposApi } from "../../services/api";
 import { mensagemDoErro } from "../../services/http";
 import type { Empresa, Usuario, UsuarioTipo } from "../../types/modelos";
-import { formatarTelefone } from "../../components/campos/CampoTelefone";
 import { ouTraco } from "../../utils/formato";
 
 const FILTROS_INICIAIS = {

@@ -15,6 +15,7 @@ import {
   GridIcon,
   GroupIcon,
   HorizontaLDots,
+  MultiUserIcon,
   UserCircleIcon,
 } from "../icons";
 import { cn } from "../utils";
@@ -53,7 +54,18 @@ const itensMenu: ItemMenu[] = [
         caminho: "/grupos-tipos",
         permissao: "grupo_tipo.ver",
       },
+      {
+        nome: "Atividades",
+        caminho: "/grupos-atividades",
+        permissao: "grupo_atividade.ver",
+      },
     ],
+  },
+  {
+    nome: "Membros",
+    icone: <MultiUserIcon />,
+    caminho: "/membros",
+    permissao: "membro.ver",
   },
   {
     nome: "Usuários",

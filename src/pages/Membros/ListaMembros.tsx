@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import CabecalhoPagina from "../../components/crud/CabecalhoPagina";
 import CartaoListagem from "../../components/crud/CartaoListagem";
 import BotaoNovo from "../../components/crud/BotaoNovo";
 import AcoesLinha from "../../components/crud/AcoesLinha";
-import AvatarNome from "../../components/crud/AvatarNome";
 import BadgeStatus from "../../components/crud/BadgeStatus";
 import ModalExclusao from "../../components/crud/ModalExclusao";
 import CampoBusca from "../../components/campos/CampoBusca";
@@ -21,38 +20,30 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { MultiUserIcon } from "../../icons";
 import { useAutenticacao } from "../../context/AutenticacaoContext";
 import { useEmpresaAtiva } from "../../context/EmpresaAtivaContext";
 import { useListagem } from "../../hooks/useListagem";
-import { gruposApi } from "../../services/api";
+import { membrosApi } from "../../services/api";
 import { mensagemDoErro } from "../../services/http";
-import type { Grupo } from "../../types/modelos";
-import { ouTraco } from "../../utils/formato";
-import {
-  corOcupacao,
-  percentualOcupacao,
-  textoOcupacao,
-} from "../../utils/ocupacao";
+import type { Membro } from "../../types/modelos";
+import { formatarDataHora, formatarNumero, ouTraco } from "../../utils/formato";
 
-/** O status já entra filtrado em "Ativo". */
+/** O status já entra filtrado em "Ativo" (membros não excluídos). */
 const FILTROS_INICIAIS = {
   nome: "",
   status: "1",
-  criado_de: "",
-  criado_ate: "",
 };
 
 const LARGURA_FILTRO = "w-full xl:w-[170px]";
 
-export default function ListaGrupos() {
+export default function ListaMembros() {
   const { temPermissao } = useAutenticacao();
   const { empresaId } = useEmpresaAtiva();
   const local = useLocation();
 
   // Trocar a empresa no header refaz a consulta na primeira página.
-  const listagem = useListagem<Grupo>({
-    listar: gruposApi.listar,
+  const listagem = useListagem<Membro>({
+    listar: membrosApi.listar,
     filtrosIniciais: FILTROS_INICIAIS,
     chaveRecarga: empresaId,
   });
@@ -60,7 +51,7 @@ export default function ListaGrupos() {
   const [mensagem, setMensagem] = useState<string | null>(
     (local.state as { mensagem?: string } | null)?.mensagem ?? null,
   );
-  const [alvo, setAlvo] = useState<Grupo | null>(null);
+  const [alvo, setAlvo] = useState<Membro | null>(null);
   const [excluindo, setExcluindo] = useState(false);
   const [erroExclusao, setErroExclusao] = useState<string | null>(null);
 
@@ -71,7 +62,7 @@ export default function ListaGrupos() {
     setErroExclusao(null);
 
     try {
-      const retorno = await gruposApi.remover(alvo.id);
+      const retorno = await membrosApi.remover(alvo.id);
 
       setAlvo(null);
       setMensagem(retorno);
@@ -91,11 +82,11 @@ export default function ListaGrupos() {
   return (
     <div>
       <PageMeta
-        title="Grupos | WhatsApp Manager"
-        description="Listagem de grupos"
+        title="Membros | WhatsApp Manager"
+        description="Listagem de membros"
       />
 
-      <CabecalhoPagina titulo="Grupos" trilha={[{ rotulo: "Grupos" }]} />
+      <CabecalhoPagina titulo="Membros" trilha={[{ rotulo: "Membros" }]} />
 
       <CartaoListagem
         carregando={listagem.carregando}
@@ -111,7 +102,7 @@ export default function ListaGrupos() {
               id="filtro-nome"
               valor={listagem.filtros.nome ?? ""}
               aoAlterar={(valor) => listagem.definirFiltro("nome", valor)}
-              placeholder="Buscar pelo nome..."
+              placeholder="Buscar por nome, número ou identificador..."
             />
 
             <CampoSelect
@@ -127,100 +118,51 @@ export default function ListaGrupos() {
                 { valor: "0", rotulo: "Inativo" },
               ]}
             />
-
-            {/* <CampoData
-              id="filtro-criado-de"
-              className={LARGURA_FILTRO}
-              descricao="Criado a partir de"
-              valor={listagem.filtros.criado_de ?? ""}
-              maximo={listagem.filtros.criado_ate || undefined}
-              aoAlterar={(valor) =>
-                listagem.definirFiltro("criado_de", valor, true)
-              }
-            />
-
-            <CampoData
-              id="filtro-criado-ate"
-              className={LARGURA_FILTRO}
-              descricao="Criado até"
-              valor={listagem.filtros.criado_ate ?? ""}
-              minimo={listagem.filtros.criado_de || undefined}
-              aoAlterar={(valor) =>
-                listagem.definirFiltro("criado_ate", valor, true)
-              }
-            /> */}
           </>
         }
         acoes={
-          temPermissao("grupo.criar") && (
-            <BotaoNovo para="/grupos/novo">Novo grupo</BotaoNovo>
+          temPermissao("membro.criar") && (
+            <BotaoNovo para="/membros/novo">Novo membro</BotaoNovo>
           )
         }
       >
         <Table>
           <TableHeader className={CLASSE_CABECALHO}>
             <TableRow>
-              <CelulaCabecalho>Grupo</CelulaCabecalho>
-              <CelulaCabecalho>Empresa</CelulaCabecalho>
-              <CelulaCabecalho>Participantes</CelulaCabecalho>
-              <CelulaCabecalho>Máximo</CelulaCabecalho>
+              <CelulaCabecalho>Nome</CelulaCabecalho>
+              <CelulaCabecalho>Número</CelulaCabecalho>
+              <CelulaCabecalho>Identificador</CelulaCabecalho>
               <CelulaCabecalho>Status</CelulaCabecalho>
+              <CelulaCabecalho>Data de criação</CelulaCabecalho>
               <CelulaCabecalho>Ações</CelulaCabecalho>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {listagem.itens.map((grupo) => {
-              const percentual = percentualOcupacao(
-                grupo.quantidade_participantes,
-                grupo.quantidade_participantes_max,
-              );
+            {listagem.itens.map((membro) => {
+              // Membro excluído não pode ser editado nem excluído de novo.
+              const ativo = !membro.deleted_at;
 
               return (
-                <TableRow key={grupo.id}>
+                <TableRow key={membro.id}>
+                  <Celula destaque>{ouTraco(membro.nome)}</Celula>
+                  <Celula>{formatarNumero(membro.numero)}</Celula>
+                  <Celula>{ouTraco(membro.identificador)}</Celula>
                   <Celula>
-                    <AvatarNome
-                      url={grupo.imagem_capa_url}
-                      nome={grupo.nome}
-                      detalhe={grupo.whatsapp_id}
-                    />
+                    <BadgeStatus ativo={ativo} />
                   </Celula>
-                  <Celula>{ouTraco(grupo.empresa?.nome)}</Celula>
-                  <Celula>
-                    <span className={`font-medium ${corOcupacao(percentual)}`}>
-                      {textoOcupacao(
-                        grupo.quantidade_participantes,
-                        grupo.quantidade_participantes_max,
-                      )}
-                    </span>
-                  </Celula>
-                  <Celula>{grupo.quantidade_participantes_max ?? "—"}</Celula>
-                  <Celula>
-                    <BadgeStatus ativo={grupo.status} />
-                  </Celula>
+                  <Celula>{formatarDataHora(membro.created_at)}</Celula>
                   <Celula>
                     <AcoesLinha
-                      extra={
-                        temPermissao("grupo_membro.ver") ? (
-                          <Link
-                            to={`/grupos/${grupo.id}/membros`}
-                            title="Membros do grupo"
-                            aria-label="Membros do grupo"
-                            className="text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90"
-                          >
-                            <MultiUserIcon className="size-5 fill-current" />
-                          </Link>
-                        ) : undefined
-                      }
-                      caminhoVer={`/grupos/${grupo.id}`}
-                      caminhoEditar={`/grupos/${grupo.id}/editar`}
+                      caminhoVer={`/membros/${membro.id}`}
+                      caminhoEditar={`/membros/${membro.id}/editar`}
                       aoExcluir={() => {
                         setErroExclusao(null);
-                        setAlvo(grupo);
+                        setAlvo(membro);
                       }}
-                      podeVer={temPermissao("grupo.ver")}
-                      podeEditar={temPermissao("grupo.editar")}
-                      podeExcluir={temPermissao("grupo.excluir")}
+                      podeVer={temPermissao("membro.ver")}
+                      podeEditar={ativo && temPermissao("membro.editar")}
+                      podeExcluir={ativo && temPermissao("membro.excluir")}
                     />
                   </Celula>
                 </TableRow>
@@ -232,7 +174,7 @@ export default function ListaGrupos() {
 
       <ModalExclusao
         aberto={alvo !== null}
-        descricao={`o grupo "${alvo?.nome ?? ""}"`}
+        descricao={`o membro "${alvo?.nome ?? formatarNumero(alvo?.numero)}"`}
         excluindo={excluindo}
         erro={erroExclusao}
         aoConfirmar={excluir}

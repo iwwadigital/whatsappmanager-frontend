@@ -10,6 +10,9 @@ export type {
 } from "./empresa";
 export type { Grupo, GrupoResumo, DadosGrupo } from "./grupo";
 export type { GrupoTipo, GrupoTipoResumo, DadosGrupoTipo } from "./grupoTipo";
+export type { GrupoMembro, DadosGrupoMembro } from "./grupoMembro";
+export type { GrupoAtividade } from "./grupoAtividade";
+export type { Membro, MembroResumo, DadosMembro } from "./membro";
 export type { Permissao, DadosPermissao } from "./permissao";
 export type { UsuarioTipo, DadosUsuarioTipo } from "./usuarioTipo";
 export type { Usuario, DadosUsuario } from "./usuario";

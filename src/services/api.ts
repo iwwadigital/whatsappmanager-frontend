@@ -3,14 +3,19 @@ import type {
   Autenticacao,
   DadosEmpresa,
   DadosGrupo,
+  DadosGrupoMembro,
   DadosGrupoTipo,
+  DadosMembro,
   DadosPermissao,
   DadosUsuario,
   DadosUsuarioTipo,
   Empresa,
   EmpresaResumo,
   Grupo,
+  GrupoAtividade,
+  GrupoMembro,
   GrupoTipo,
+  Membro,
   Permissao,
   Usuario,
   UsuarioAutenticado,
@@ -53,6 +58,32 @@ export const gruposTiposApi = criarRecurso<GrupoTipo, DadosGrupoTipo>({
   caminho: "grupos-tipos",
   chaveLista: "grupos_tipos",
   chaveItem: "grupo_tipo",
+});
+
+/**
+ * Membros do grupo (tabela pivô com chave composta): o caminho depende do
+ * grupo, por isso o recurso é montado por grupo. O id usado em `atualizar` e
+ * `remover` é o do **membro**, como na rota /grupos/{grupo}/membros/{membro}.
+ */
+export function criarGruposMembrosApi(grupoId: number | string) {
+  return criarRecurso<GrupoMembro, DadosGrupoMembro>({
+    caminho: `grupos/${grupoId}/membros`,
+    chaveLista: "grupos_membros",
+    chaveItem: "grupo_membro",
+  });
+}
+
+/** Log de atividades dos grupos — somente leitura (apenas `listar`). */
+export const gruposAtividadesApi = criarRecurso<GrupoAtividade, never>({
+  caminho: "grupos-atividades",
+  chaveLista: "grupos_atividades",
+  chaveItem: "grupo_atividade",
+});
+
+export const membrosApi = criarRecurso<Membro, DadosMembro>({
+  caminho: "membros",
+  chaveLista: "membros",
+  chaveItem: "membro",
 });
 
 export const permissoesApi = criarRecurso<Permissao, DadosPermissao>({
