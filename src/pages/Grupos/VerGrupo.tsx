@@ -64,6 +64,14 @@ export default function VerGrupo() {
                 Membros do grupo
               </Link>
             )}
+            {registro && temPermissao("grupo_whatsapp_conta.ver") && (
+              <Link
+                to={`/grupos/${registro.id}/contas`}
+                className="inline-flex items-center justify-center rounded-lg bg-white px-4 py-3 text-sm text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
+              >
+                Contas do grupo
+              </Link>
+            )}
             {registro && temPermissao("grupo.editar") && (
               <Link
                 to={`/grupos/${registro.id}/editar`}

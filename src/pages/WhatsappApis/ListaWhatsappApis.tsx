@@ -7,13 +7,13 @@ import BotaoNovo from "../../components/crud/BotaoNovo";
 import AcoesLinha from "../../components/crud/AcoesLinha";
 import ModalExclusao from "../../components/crud/ModalExclusao";
 import TextoTruncado from "../../components/crud/TextoTruncado";
-import Badge from "../../components/ui/badge/Badge";
 import CampoBusca from "../../components/campos/CampoBusca";
 import {
   Celula,
   CelulaCabecalho,
   CLASSE_CABECALHO,
 } from "../../components/crud/Tabela";
+import Badge from "../../components/ui/badge/Badge";
 import {
   Table,
   TableBody,
@@ -21,28 +21,30 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { useAutenticacao } from "../../context/AutenticacaoContext";
+import { useEmpresaAtiva } from "../../context/EmpresaAtivaContext";
 import { useListagem } from "../../hooks/useListagem";
-import { acoesTiposApi } from "../../services/api";
+import { whatsappApisApi } from "../../services/api";
 import { mensagemDoErro } from "../../services/http";
-import type { AcaoTipo } from "../../types/modelos";
-import { formatarDataHora } from "../../utils/formato";
+import type { WhatsappApi } from "../../types/modelos";
+import { ouTraco } from "../../utils/formato";
 
 const FILTROS_INICIAIS = { nome: "" };
 
-export default function ListaAcoesTipos() {
+export default function ListaWhatsappApis() {
   const { temPermissao } = useAutenticacao();
+  const { empresaId } = useEmpresaAtiva();
   const local = useLocation();
 
-  // O catálogo é global: não depende da empresa ativa.
-  const listagem = useListagem<AcaoTipo>({
-    listar: acoesTiposApi.listar,
+  const listagem = useListagem<WhatsappApi>({
+    listar: whatsappApisApi.listar,
     filtrosIniciais: FILTROS_INICIAIS,
+    chaveRecarga: empresaId,
   });
 
   const [mensagem, setMensagem] = useState<string | null>(
     (local.state as { mensagem?: string } | null)?.mensagem ?? null,
   );
-  const [alvo, setAlvo] = useState<AcaoTipo | null>(null);
+  const [alvo, setAlvo] = useState<WhatsappApi | null>(null);
   const [excluindo, setExcluindo] = useState(false);
   const [erroExclusao, setErroExclusao] = useState<string | null>(null);
 
@@ -53,7 +55,7 @@ export default function ListaAcoesTipos() {
     setErroExclusao(null);
 
     try {
-      const retorno = await acoesTiposApi.remover(alvo.id);
+      const retorno = await whatsappApisApi.remover(alvo.id);
 
       setAlvo(null);
       setMensagem(retorno);
@@ -64,6 +66,7 @@ export default function ListaAcoesTipos() {
         await listagem.recarregar();
       }
     } catch (falha) {
+      // 409 quando a API tem contas vinculadas.
       setErroExclusao(mensagemDoErro(falha));
     } finally {
       setExcluindo(false);
@@ -73,13 +76,13 @@ export default function ListaAcoesTipos() {
   return (
     <div>
       <PageMeta
-        title="Tipos de ação | WhatsApp Manager"
-        description="Listagem de tipos de ação"
+        title="APIs de WhatsApp | WhatsApp Manager"
+        description="Listagem de APIs de WhatsApp"
       />
 
       <CabecalhoPagina
-        titulo="Tipos de ação"
-        trilha={[{ rotulo: "Ações", caminho: "/acoes" }, { rotulo: "Tipos" }]}
+        titulo="APIs de WhatsApp"
+        trilha={[{ rotulo: "APIs de WhatsApp" }]}
       />
 
       <CartaoListagem
@@ -95,12 +98,12 @@ export default function ListaAcoesTipos() {
             id="filtro-nome"
             valor={listagem.filtros.nome ?? ""}
             aoAlterar={(valor) => listagem.definirFiltro("nome", valor)}
-            placeholder="Buscar pelo nome..."
+            placeholder="Buscar por nome..."
           />
         }
         acoes={
-          temPermissao("acao_tipo.criar") && (
-            <BotaoNovo para="/acoes-tipos/novo">Novo tipo de ação</BotaoNovo>
+          temPermissao("whatsapp_api.criar") && (
+            <BotaoNovo para="/whatsapp-apis/novo">Nova API</BotaoNovo>
           )
         }
       >
@@ -108,46 +111,37 @@ export default function ListaAcoesTipos() {
           <TableHeader className={CLASSE_CABECALHO}>
             <TableRow>
               <CelulaCabecalho>Nome</CelulaCabecalho>
-              <CelulaCabecalho>Descrição</CelulaCabecalho>
-              <CelulaCabecalho>Função</CelulaCabecalho>
-              <CelulaCabecalho>Data de criação</CelulaCabecalho>
+              <CelulaCabecalho>API</CelulaCabecalho>
+              <CelulaCabecalho>URL</CelulaCabecalho>
+              <CelulaCabecalho>Status de sucesso</CelulaCabecalho>
               <CelulaCabecalho>Ações</CelulaCabecalho>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {listagem.itens.map((tipo) => (
-              <TableRow key={tipo.id}>
-                <Celula destaque>{tipo.nome}</Celula>
-                {/* Até 50 caracteres; o resto abre em tooltip. */}
-                <Celula className="whitespace-normal">
-                  <TextoTruncado texto={tipo.descricao} />
+            {listagem.itens.map((api) => (
+              <TableRow key={api.id}>
+                <Celula destaque>{api.nome}</Celula>
+                <Celula>
+                  <Badge size="sm" color="info">
+                    {api.api_rotulo}
+                  </Badge>
                 </Celula>
                 <Celula>
-                  <span className="flex flex-wrap items-center gap-2">
-                    <code className="rounded bg-gray-100 px-2 py-1 text-theme-xs text-gray-700 dark:bg-white/[0.06] dark:text-gray-300">
-                      {tipo.funcao}
-                    </code>
-                    {/* Sem código no robô, a ação deste tipo não executa. */}
-                    {tipo.funcao_implementada === false && (
-                      <Badge size="sm" color="warning">
-                        Não implementada
-                      </Badge>
-                    )}
-                  </span>
+                  <TextoTruncado texto={api.url} limite={40} />
                 </Celula>
-                <Celula>{formatarDataHora(tipo.created_at)}</Celula>
+                <Celula>{ouTraco(api.status_sucesso)}</Celula>
                 <Celula>
                   <AcoesLinha
-                    caminhoVer={`/acoes-tipos/${tipo.id}`}
-                    caminhoEditar={`/acoes-tipos/${tipo.id}/editar`}
+                    caminhoVer={`/whatsapp-apis/${api.id}`}
+                    caminhoEditar={`/whatsapp-apis/${api.id}/editar`}
                     aoExcluir={() => {
                       setErroExclusao(null);
-                      setAlvo(tipo);
+                      setAlvo(api);
                     }}
-                    podeVer={temPermissao("acao_tipo.ver")}
-                    podeEditar={temPermissao("acao_tipo.editar")}
-                    podeExcluir={temPermissao("acao_tipo.excluir")}
+                    podeVer={temPermissao("whatsapp_api.ver")}
+                    podeEditar={temPermissao("whatsapp_api.editar")}
+                    podeExcluir={temPermissao("whatsapp_api.excluir")}
                   />
                 </Celula>
               </TableRow>
@@ -158,7 +152,7 @@ export default function ListaAcoesTipos() {
 
       <ModalExclusao
         aberto={alvo !== null}
-        descricao={`o tipo de ação "${alvo?.nome ?? ""}"`}
+        descricao={`a API "${alvo?.nome ?? ""}"`}
         excluindo={excluindo}
         erro={erroExclusao}
         aoConfirmar={excluir}

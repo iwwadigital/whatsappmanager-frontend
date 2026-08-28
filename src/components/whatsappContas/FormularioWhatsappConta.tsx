@@ -1,4 +1,6 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import CampoAlternador from "../campos/CampoAlternador";
+import CampoAutocomplete from "../campos/CampoAutocomplete";
 import CampoTelefone, {
   DDI_PADRAO,
   formatarTelefoneInternacional,
@@ -7,57 +9,69 @@ import CampoTexto from "../campos/CampoTexto";
 import Carregador from "../campos/Carregador";
 import Button from "../ui/button/Button";
 import { MensagemErro } from "../crud/EstadosLista";
+import { whatsappApisApi } from "../../services/api";
 import type { ErrosValidacao } from "../../types/api";
-import type { DadosMembro, Membro } from "../../types/modelos";
+import type {
+  DadosWhatsappConta,
+  WhatsappApi,
+  WhatsappConta,
+} from "../../types/modelos";
 import { numeroValido, somenteDigitos } from "../../utils/formato";
 
 /** Cadastro novo já começa com o DDI do Brasil. */
 const NUMERO_INICIAL = formatarTelefoneInternacional(DDI_PADRAO);
 
-interface FormularioMembroProps {
+interface FormularioWhatsappContaProps {
   /** Registro em edição; ausente no cadastro. */
-  registro?: Membro | null;
+  registro?: WhatsappConta | null;
   salvando: boolean;
   erros: ErrosValidacao;
   erroGeral?: string | null;
-  aoEnviar: (dados: DadosMembro) => void;
+  aoEnviar: (dados: DadosWhatsappConta) => void;
   aoCancelar: () => void;
 }
 
-/** Formulário compartilhado pelas telas de cadastro e edição de membro. */
-export default function FormularioMembro({
+/** Formulário compartilhado pelas telas de cadastro e edição de conta. */
+export default function FormularioWhatsappConta({
   registro,
   salvando,
   erros,
   erroGeral,
   aoEnviar,
   aoCancelar,
-}: FormularioMembroProps) {
+}: FormularioWhatsappContaProps) {
+  const [whatsappApiId, setWhatsappApiId] = useState<number | null>(null);
   const [numero, setNumero] = useState(NUMERO_INICIAL);
   const [nome, setNome] = useState("");
-  const [identificador, setIdentificador] = useState("");
+  const [token, setToken] = useState("");
+  const [status, setStatus] = useState(true);
   // Validação do telefone no cliente, antes de chamar a API.
   const [erroNumero, setErroNumero] = useState<string | null>(null);
 
   useEffect(() => {
+    setWhatsappApiId(registro?.whatsapp_api_id ?? null);
     setNumero(
-      registro
-        ? formatarTelefoneInternacional(registro.numero)
-        : NUMERO_INICIAL,
+      registro ? formatarTelefoneInternacional(registro.numero) : NUMERO_INICIAL,
     );
     setNome(registro?.nome ?? "");
-    setIdentificador(registro?.identificador ?? "");
+    setToken(registro?.token ?? "");
+    setStatus(registro?.status ?? true);
     setErroNumero(null);
   }, [registro]);
 
-  // O número identifica o contato no WhatsApp: depois de cadastrado, não
-  // muda. A API também não o aceita na edição (MembroUpdateRequest).
-  const edicao = Boolean(registro);
+  const buscarApis = useCallback(async (termo: string) => {
+    const resultado = await whatsappApisApi.listar({
+      nome: termo,
+      por_pagina: 20,
+    });
+
+    return resultado.itens;
+  }, []);
 
   const enviar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
 
-    if (!edicao && !numeroValido(numero)) {
+    if (!numeroValido(numero)) {
       setErroNumero("Informe um número de telefone válido, com DDI e DDD.");
 
       return;
@@ -66,11 +80,12 @@ export default function FormularioMembro({
     setErroNumero(null);
 
     aoEnviar({
+      whatsapp_api_id: whatsappApiId ?? 0,
       // O número é gravado sem máscara.
       numero: somenteDigitos(numero),
-      nome: nome.trim() === "" ? null : nome.trim(),
-      identificador:
-        identificador.trim() === "" ? null : identificador.trim(),
+      nome: nome.trim(),
+      token: token.trim(),
+      status,
     });
   };
 
@@ -86,42 +101,63 @@ export default function FormularioMembro({
       )}
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <CampoTelefone
-          id="numero"
-          label="Número"
+        <CampoAutocomplete<WhatsappApi>
+          id="whatsapp_api_id"
+          label="API"
           obrigatorio
-          internacional
-          desabilitado={edicao}
-          valor={numero}
-          aoAlterar={(valor) => {
-            setNumero(valor);
-            setErroNumero(null);
-          }}
-          dica={
-            edicao
-              ? "O número não pode ser alterado. Para outro número, cadastre um membro novo."
-              : "Com DDI: +55 para o Brasil. É gravado só com dígitos."
-          }
-          erro={erroNumero ?? erros.numero?.[0]}
+          valor={whatsappApiId}
+          rotuloSelecionado={registro?.whatsapp_api?.nome}
+          aoSelecionar={(api) => setWhatsappApiId(api?.id ?? null)}
+          buscar={buscarApis}
+          obterValor={(api) => api.id}
+          obterRotulo={(api) => api.nome}
+          obterDescricao={(api) => api.url}
+          placeholder="Busque pelo nome da API"
+          erro={erros.whatsapp_api_id?.[0]}
         />
 
         <CampoTexto
           id="nome"
           label="Nome"
+          obrigatorio
           valor={nome}
           aoAlterar={setNome}
-          placeholder="Nome do membro"
+          placeholder="Como esta conta é chamada internamente"
           erro={erros.nome?.[0]}
         />
 
+        <CampoTelefone
+          id="numero"
+          label="Número"
+          obrigatorio
+          internacional
+          valor={numero}
+          aoAlterar={(valor) => {
+            setNumero(valor);
+            setErroNumero(null);
+          }}
+          dica="Com DDI: +55 para o Brasil. É gravado só com dígitos."
+          erro={erroNumero ?? erros.numero?.[0]}
+        />
+
         <CampoTexto
-          id="identificador"
-          label="Identificador"
-          valor={identificador}
-          aoAlterar={setIdentificador}
-          placeholder="Código interno, matrícula, etc."
-          dica="Opcional."
-          erro={erros.identificador?.[0]}
+          id="token"
+          label="Token"
+          obrigatorio
+          valor={token}
+          aoAlterar={setToken}
+          placeholder="Token da conta na API"
+          dica="É com ele que o sistema se autentica na API."
+          erro={erros.token?.[0]}
+        />
+
+        <CampoAlternador
+          id="status"
+          label="Status"
+          descricao={status ? "Ativa" : "Inativa"}
+          valor={status}
+          aoAlterar={setStatus}
+          erro={erros.status?.[0]}
         />
       </div>
 

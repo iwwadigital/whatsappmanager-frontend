@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { MultiUserIcon } from "../../icons";
+import { MultiUserIcon, PlugInIcon } from "../../icons";
 import { useAutenticacao } from "../../context/AutenticacaoContext";
 import { useEmpresaAtiva } from "../../context/EmpresaAtivaContext";
 import { useListagem } from "../../hooks/useListagem";
@@ -201,16 +201,28 @@ export default function ListaGrupos() {
                   <Celula>
                     <AcoesLinha
                       extra={
-                        temPermissao("grupo_membro.ver") ? (
-                          <Link
-                            to={`/grupos/${grupo.id}/membros`}
-                            title="Membros do grupo"
-                            aria-label="Membros do grupo"
-                            className="text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90"
-                          >
-                            <MultiUserIcon className="size-5 fill-current" />
-                          </Link>
-                        ) : undefined
+                        <>
+                          {temPermissao("grupo_membro.ver") && (
+                            <Link
+                              to={`/grupos/${grupo.id}/membros`}
+                              title="Membros do grupo"
+                              aria-label="Membros do grupo"
+                              className="text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90"
+                            >
+                              <MultiUserIcon className="size-5 fill-current" />
+                            </Link>
+                          )}
+                          {temPermissao("grupo_whatsapp_conta.ver") && (
+                            <Link
+                              to={`/grupos/${grupo.id}/contas`}
+                              title="Contas do grupo"
+                              aria-label="Contas do grupo"
+                              className="text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90"
+                            >
+                              <PlugInIcon className="size-5 fill-current" />
+                            </Link>
+                          )}
+                        </>
                       }
                       caminhoVer={`/grupos/${grupo.id}`}
                       caminhoEditar={`/grupos/${grupo.id}/editar`}

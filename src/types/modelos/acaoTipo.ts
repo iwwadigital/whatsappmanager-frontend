@@ -9,6 +9,11 @@ export interface AcaoTipoResumo {
 /** Model: App\Models\Acao\AcaoTipo (tabela "acoes_tipos"). */
 export interface AcaoTipo extends AcaoTipoResumo {
   descricao: string | null;
+  /**
+   * A `funcao` já tem código no robô? Tipo cadastrado com uma função ainda
+   * não implementada é aceito, mas o robô não consegue executá-lo.
+   */
+  funcao_implementada?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
 }

@@ -1,9 +1,11 @@
 import type { RespostaApi } from "../types/api";
 import type {
   Acao,
+  AcaoGrupo,
   AcaoTipo,
   Autenticacao,
   DadosAcao,
+  DadosAcaoGrupo,
   DadosAcaoTipo,
   DadosEmpresa,
   DadosGrupo,
@@ -24,6 +26,12 @@ import type {
   Usuario,
   UsuarioAutenticado,
   UsuarioTipo,
+  ApiDisponivel,
+  DadosGrupoConta,
+  DadosWhatsappApi,
+  DadosWhatsappConta,
+  WhatsappApi,
+  WhatsappConta,
 } from "../types/modelos";
 import { requisitar } from "./http";
 import { criarRecurso } from "./recurso";
@@ -45,6 +53,17 @@ export const acoesApi = criarRecurso<Acao, DadosAcao>({
   caminho: "acoes",
   chaveLista: "acoes",
   chaveItem: "acao",
+});
+
+/**
+ * Execuções das ações nos grupos. A API não tem `store` nem `destroy`: a
+ * linha é criada pelo robô, e só `prioridade` e `iniciar_apartir_de` podem
+ * ser editados.
+ */
+export const acoesGruposApi = criarRecurso<AcaoGrupo, DadosAcaoGrupo>({
+  caminho: "acoes-grupos",
+  chaveLista: "acoes_grupos",
+  chaveItem: "acao_grupo",
 });
 
 export const empresasApi = criarRecurso<Empresa, DadosEmpresa>({
@@ -132,6 +151,70 @@ export const membrosApi = criarRecurso<Membro, DadosMembro>({
   chaveLista: "membros",
   chaveItem: "membro",
 });
+
+/* --------------------------- WhatsApp --------------------------- */
+
+/** APIs de WhatsApp da empresa ativa. */
+export const whatsappApisApi = criarRecurso<WhatsappApi, DadosWhatsappApi>({
+  caminho: "whatsapp-apis",
+  chaveLista: "whatsapp_apis",
+  chaveItem: "whatsapp_api",
+});
+
+/**
+ * Interfaces de conexão que o sistema sabe operar — alimenta o campo "API"
+ * do formulário. Só exige autenticação.
+ */
+export const apisDisponiveisApi = {
+  async listar(): Promise<ApiDisponivel[]> {
+    const resposta = await requisitar({ caminho: "whatsapp-apis-disponiveis" });
+
+    // "aviso" = nenhuma interface registrada no GerenciadorWhatsApp.
+    return resposta.type === "aviso"
+      ? []
+      : ((resposta.apis_disponiveis as ApiDisponivel[] | undefined) ?? []);
+  },
+};
+
+/** Contas de WhatsApp da empresa ativa (listagem sem paginação). */
+export const whatsappContasApi = {
+  ...criarRecurso<WhatsappConta, DadosWhatsappConta>({
+    caminho: "whatsapp-contas",
+    chaveLista: "whatsapp_contas",
+    chaveItem: "whatsapp_conta",
+  }),
+
+  /**
+   * Consulta o status da conta na API e grava o resultado.
+   * Devolve a conta atualizada e a mensagem — que também explica a falha
+   * quando a API não responde (alerta 409, tratado por quem chama).
+   */
+  async sincronizarStatus(
+    id: number | string,
+  ): Promise<{ conta: WhatsappConta; mensagem: string }> {
+    const resposta = await requisitar({
+      metodo: "POST",
+      caminho: `whatsapp-contas/${id}/status`,
+    });
+
+    return {
+      conta: resposta.whatsapp_conta as WhatsappConta,
+      mensagem: resposta.message,
+    };
+  },
+};
+
+/**
+ * Contas de WhatsApp de um grupo (`grupos_whatsapp_contas`). O vínculo não
+ * tem atributos nem edição: `listar`, `criar` e `remover` (pelo id da conta).
+ */
+export function criarGruposContasApi(grupoId: number | string) {
+  return criarRecurso<WhatsappConta, DadosGrupoConta>({
+    caminho: `grupos/${grupoId}/whatsapp-contas`,
+    chaveLista: "whatsapp_contas",
+    chaveItem: "whatsapp_conta",
+  });
+}
 
 export const permissoesApi = criarRecurso<Permissao, DadosPermissao>({
   caminho: "permissoes",

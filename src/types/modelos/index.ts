@@ -3,6 +3,12 @@
  * Importe daqui (`types/modelos`) ou direto do arquivo do model.
  */
 export type { Acao, DadosAcao } from "./acao";
+export type {
+  AcaoGrupo,
+  AcaoGrupoAcao,
+  AcaoGrupoConta,
+  DadosAcaoGrupo,
+} from "./acaoGrupo";
 export type { AcaoTipo, AcaoTipoResumo, DadosAcaoTipo } from "./acaoTipo";
 export type {
   Empresa,
@@ -24,3 +30,14 @@ export type { Permissao, DadosPermissao } from "./permissao";
 export type { UsuarioTipo, DadosUsuarioTipo } from "./usuarioTipo";
 export type { Usuario, DadosUsuario } from "./usuario";
 export type { UsuarioAutenticado, Autenticacao } from "./autenticacao";
+export type {
+  ApiDisponivel,
+  WhatsappApi,
+  WhatsappApiResumo,
+  DadosWhatsappApi,
+} from "./whatsappApi";
+export type {
+  WhatsappConta,
+  DadosWhatsappConta,
+  DadosGrupoConta,
+} from "./whatsappConta";

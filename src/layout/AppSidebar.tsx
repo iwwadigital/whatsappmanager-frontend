@@ -17,6 +17,7 @@ import {
   GroupIcon,
   HorizontaLDots,
   MultiUserIcon,
+  PlugInIcon,
   UserCircleIcon,
 } from "../icons";
 import { cn } from "../utils";
@@ -68,6 +69,11 @@ const itensMenu: ItemMenu[] = [
     subItens: [
       { nome: "Ações", caminho: "/acoes", permissao: "acao.ver" },
       {
+        nome: "Execuções",
+        caminho: "/acoes-grupos",
+        permissao: "acao_grupo.ver",
+      },
+      {
         nome: "Tipos de ação",
         caminho: "/acoes-tipos",
         permissao: "acao_tipo.ver",
@@ -79,6 +85,22 @@ const itensMenu: ItemMenu[] = [
     icone: <MultiUserIcon />,
     caminho: "/membros",
     permissao: "membro.ver",
+  },
+  {
+    nome: "WhatsApp",
+    icone: <PlugInIcon />,
+    subItens: [
+      {
+        nome: "Contas",
+        caminho: "/whatsapp-contas",
+        permissao: "whatsapp_conta.ver",
+      },
+      {
+        nome: "APIs",
+        caminho: "/whatsapp-apis",
+        permissao: "whatsapp_api.ver",
+      },
+    ],
   },
   {
     nome: "Usuários",

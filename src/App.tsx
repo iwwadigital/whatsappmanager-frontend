@@ -27,6 +27,9 @@ import VerPermissao from "./pages/Permissoes/VerPermissao";
 import ListaAcoes from "./pages/Acoes/ListaAcoes";
 import EditarAcao from "./pages/Acoes/EditarAcao";
 
+import ListaAcoesGrupos from "./pages/AcoesGrupos/ListaAcoesGrupos";
+import EditarAcaoGrupo from "./pages/AcoesGrupos/EditarAcaoGrupo";
+
 import ListaAcoesTipos from "./pages/AcoesTipos/ListaAcoesTipos";
 import NovoAcaoTipo from "./pages/AcoesTipos/NovoAcaoTipo";
 import EditarAcaoTipo from "./pages/AcoesTipos/EditarAcaoTipo";
@@ -38,6 +41,17 @@ import EditarGrupo from "./pages/Grupos/EditarGrupo";
 import VerGrupo from "./pages/Grupos/VerGrupo";
 
 import MembrosDoGrupo from "./pages/Grupos/MembrosDoGrupo";
+import ContasDoGrupo from "./pages/Grupos/ContasDoGrupo";
+
+import ListaWhatsappApis from "./pages/WhatsappApis/ListaWhatsappApis";
+import NovaWhatsappApi from "./pages/WhatsappApis/NovaWhatsappApi";
+import EditarWhatsappApi from "./pages/WhatsappApis/EditarWhatsappApi";
+import VerWhatsappApi from "./pages/WhatsappApis/VerWhatsappApi";
+
+import ListaWhatsappContas from "./pages/WhatsappContas/ListaWhatsappContas";
+import NovaWhatsappConta from "./pages/WhatsappContas/NovaWhatsappConta";
+import EditarWhatsappConta from "./pages/WhatsappContas/EditarWhatsappConta";
+import VerWhatsappConta from "./pages/WhatsappContas/VerWhatsappConta";
 
 import ListaGruposAtividades from "./pages/GruposAtividades/ListaGruposAtividades";
 
@@ -140,6 +154,55 @@ export default function App() {
               />
             </Route>
 
+            {/* Contas de WhatsApp do grupo */}
+            <Route
+              element={<RotaComPermissao permissao="grupo_whatsapp_conta.ver" />}
+            >
+              <Route path="/grupos/:id/contas" element={<ContasDoGrupo />} />
+            </Route>
+
+            {/* APIs de WhatsApp */}
+            <Route element={<RotaComPermissao permissao="whatsapp_api.ver" />}>
+              <Route path="/whatsapp-apis" element={<ListaWhatsappApis />} />
+              <Route path="/whatsapp-apis/:id" element={<VerWhatsappApi />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="whatsapp_api.criar" />}>
+              <Route path="/whatsapp-apis/novo" element={<NovaWhatsappApi />} />
+            </Route>
+            <Route
+              element={<RotaComPermissao permissao="whatsapp_api.editar" />}
+            >
+              <Route
+                path="/whatsapp-apis/:id/editar"
+                element={<EditarWhatsappApi />}
+              />
+            </Route>
+
+            {/* Contas de WhatsApp */}
+            <Route element={<RotaComPermissao permissao="whatsapp_conta.ver" />}>
+              <Route path="/whatsapp-contas" element={<ListaWhatsappContas />} />
+              <Route
+                path="/whatsapp-contas/:id"
+                element={<VerWhatsappConta />}
+              />
+            </Route>
+            <Route
+              element={<RotaComPermissao permissao="whatsapp_conta.criar" />}
+            >
+              <Route
+                path="/whatsapp-contas/novo"
+                element={<NovaWhatsappConta />}
+              />
+            </Route>
+            <Route
+              element={<RotaComPermissao permissao="whatsapp_conta.editar" />}
+            >
+              <Route
+                path="/whatsapp-contas/:id/editar"
+                element={<EditarWhatsappConta />}
+              />
+            </Route>
+
             {/* Atividades dos grupos (log, somente leitura) */}
             <Route
               element={<RotaComPermissao permissao="grupo_atividade.ver" />}
@@ -183,6 +246,17 @@ export default function App() {
             </Route>
             <Route element={<RotaComPermissao permissao="acao.editar" />}>
               <Route path="/acoes/:id/editar" element={<EditarAcao />} />
+            </Route>
+
+            {/* Execuções das ações nos grupos (criadas pelo robô) */}
+            <Route element={<RotaComPermissao permissao="acao_grupo.ver" />}>
+              <Route path="/acoes-grupos" element={<ListaAcoesGrupos />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="acao_grupo.editar" />}>
+              <Route
+                path="/acoes-grupos/:id/editar"
+                element={<EditarAcaoGrupo />}
+              />
             </Route>
 
             {/* Tipos de ação */}
