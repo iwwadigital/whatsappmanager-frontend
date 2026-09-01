@@ -16,6 +16,7 @@ export interface MembroGrupo {
   pivot?: {
     admin: boolean;
     status: boolean;
+    situacao: string;
     created_at?: string | null;
   };
 }
@@ -23,6 +24,12 @@ export interface MembroGrupo {
 /** Model: App\Models\Membro\Membro (tabela "membros"). */
 export interface Membro extends MembroResumo {
   empresa_id: number;
+  /**
+   * `true` quando o membro entrou pelo cadastro (tela, importação, ou o
+   * número de uma conta); `false` quando o robô o encontrou dentro de um
+   * grupo, adicionado por fora pelo celular.
+   */
+  cadastrado_pelo_sistema: boolean;
   empresa?: EmpresaResumo | null;
   /** Grupos em que o membro está alocado; só vem no `show`. */
   grupos?: MembroGrupo[];

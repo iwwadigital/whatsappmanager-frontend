@@ -29,6 +29,7 @@ import EditarAcao from "./pages/Acoes/EditarAcao";
 
 import ListaAcoesGrupos from "./pages/AcoesGrupos/ListaAcoesGrupos";
 import EditarAcaoGrupo from "./pages/AcoesGrupos/EditarAcaoGrupo";
+import ListaAcoesGruposLogs from "./pages/AcoesGruposLogs/ListaAcoesGruposLogs";
 
 import ListaAcoesTipos from "./pages/AcoesTipos/ListaAcoesTipos";
 import NovoAcaoTipo from "./pages/AcoesTipos/NovoAcaoTipo";
@@ -248,7 +249,7 @@ export default function App() {
               <Route path="/acoes/:id/editar" element={<EditarAcao />} />
             </Route>
 
-            {/* Execuções das ações nos grupos (criadas pelo robô) */}
+            {/* Execuções das ações nos grupos (nascem junto com a ação) */}
             <Route element={<RotaComPermissao permissao="acao_grupo.ver" />}>
               <Route path="/acoes-grupos" element={<ListaAcoesGrupos />} />
             </Route>
@@ -256,6 +257,16 @@ export default function App() {
               <Route
                 path="/acoes-grupos/:id/editar"
                 element={<EditarAcaoGrupo />}
+              />
+            </Route>
+
+            {/* Logs das execuções (gravados pelo robô) */}
+            <Route
+              element={<RotaComPermissao permissao="acao_grupo_log.ver" />}
+            >
+              <Route
+                path="/acoes-grupos-logs"
+                element={<ListaAcoesGruposLogs />}
               />
             </Route>
 

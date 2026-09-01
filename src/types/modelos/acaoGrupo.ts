@@ -21,8 +21,9 @@ export interface AcaoGrupoConta {
 /**
  * Model: App\Models\Acao\AcaoGrupo (tabela "acoes_grupos").
  *
- * A linha é criada pelo robô; a tela só edita `prioridade` e
- * `iniciar_apartir_de`. O estado se lê pelas datas: `iniciado` sem
+ * A linha nasce junto com a ação, uma para cada grupo do alvo; a tela só
+ * edita `prioridade` e `iniciar_apartir_de`. O estado se lê pelas datas:
+ * `whatsapp_conta_id` nulo é execução ainda na fila, `iniciado` sem
  * `finalizado` é execução em andamento (ou que falhou e aguarda nova
  * tentativa).
  */

@@ -51,6 +51,16 @@ export default function ModalVerAcao({
             <ItemDetalhe rotulo="Agendamento">
               {formatarDataHora(acao.agendamento)}
             </ItemDetalhe>
+            <ItemDetalhe rotulo="Execuções">
+              {acao.execucoes_count === undefined
+                ? "—"
+                : `${acao.execucoes_concluidas_count ?? 0} de ${
+                    acao.execucoes_count
+                  } concluída(s)`}
+            </ItemDetalhe>
+            <ItemDetalhe rotulo="Finalizado">
+              {formatarDataHora(acao.finalizado)}
+            </ItemDetalhe>
             <ItemDetalhe rotulo="Data de criação">
               {formatarDataHora(acao.created_at)}
             </ItemDetalhe>

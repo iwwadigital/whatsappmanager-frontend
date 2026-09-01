@@ -9,6 +9,7 @@ import ModalExclusao from "../../components/crud/ModalExclusao";
 import ModalGrupoMembro from "../../components/gruposMembros/ModalGrupoMembro";
 import ResumoOcupacao from "../../components/gruposMembros/ResumoOcupacao";
 import CampoBusca from "../../components/campos/CampoBusca";
+import CampoSelect from "../../components/campos/CampoSelect";
 import {
   Celula,
   CelulaCabecalho,
@@ -33,8 +34,15 @@ import type {
   GrupoMembro,
 } from "../../types/modelos";
 import { formatarNumero, ouTraco } from "../../utils/formato";
+import {
+  corSituacao,
+  opcoesSituacao,
+  rotuloSituacao,
+} from "../../utils/situacoesVinculo";
 
-const FILTROS_INICIAIS = { nome: "" };
+const FILTROS_INICIAIS = { nome: "", situacao: "" };
+
+const LARGURA_FILTRO = "w-full sm:w-[190px]";
 
 /** Listagem dos membros de um grupo específico. */
 export default function MembrosDoGrupo() {
@@ -164,12 +172,27 @@ export default function MembrosDoGrupo() {
         paginacao={listagem.paginacao}
         aoMudarPagina={listagem.irParaPagina}
         filtros={
-          <CampoBusca
-            id="filtro-nome"
-            valor={listagem.filtros.nome ?? ""}
-            aoAlterar={(valor) => listagem.definirFiltro("nome", valor)}
-            placeholder="Buscar por nome, número ou identificador..."
-          />
+          <>
+            <CampoBusca
+              id="filtro-nome"
+              label="Pesquisa"
+              valor={listagem.filtros.nome ?? ""}
+              aoAlterar={(valor) => listagem.definirFiltro("nome", valor)}
+              placeholder="Buscar por nome, número ou identificador..."
+            />
+
+            <CampoSelect
+              id="filtro-situacao"
+              label="Situação"
+              className={LARGURA_FILTRO}
+              placeholder="Todas"
+              valor={listagem.filtros.situacao ?? ""}
+              aoAlterar={(valor) =>
+                listagem.definirFiltro("situacao", valor, true)
+              }
+              opcoes={opcoesSituacao()}
+            />
+          </>
         }
         acoes={
           temPermissao("grupo_membro.criar") && (
@@ -189,6 +212,7 @@ export default function MembrosDoGrupo() {
               <CelulaCabecalho>Nome do membro</CelulaCabecalho>
               <CelulaCabecalho>Número do membro</CelulaCabecalho>
               <CelulaCabecalho>Admin</CelulaCabecalho>
+              <CelulaCabecalho>Situação</CelulaCabecalho>
               <CelulaCabecalho>Status</CelulaCabecalho>
               <CelulaCabecalho>Ações</CelulaCabecalho>
             </TableRow>
@@ -202,6 +226,11 @@ export default function MembrosDoGrupo() {
                 <Celula>
                   <Badge size="sm" color={vinculo.admin ? "info" : "light"}>
                     {vinculo.admin ? "Sim" : "Não"}
+                  </Badge>
+                </Celula>
+                <Celula>
+                  <Badge size="sm" color={corSituacao(vinculo.situacao)}>
+                    {rotuloSituacao(vinculo.situacao)}
                   </Badge>
                 </Celula>
                 <Celula>
@@ -240,6 +269,15 @@ export default function MembrosDoGrupo() {
         descricao={`o membro "${
           alvo?.membro?.nome ?? formatarNumero(alvo?.membro?.numero)
         }" deste grupo`}
+        aviso={
+          alvo?.situacao === "confirmado" ? (
+            <>
+              Este membro <strong>está dentro do grupo</strong> agora. Ao
+              removê-lo, ele não poderá mais ser adicionado a este grupo — se
+              precisar dele de volta, será em outro grupo do mesmo tipo.
+            </>
+          ) : undefined
+        }
         excluindo={excluindo}
         erro={erroExclusao}
         aoConfirmar={excluir}

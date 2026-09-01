@@ -182,7 +182,7 @@ export default function ListaGrupos() {
                     <AvatarNome
                       url={grupo.imagem_capa_url}
                       nome={grupo.nome}
-                      detalhe={grupo.whatsapp_id}
+                      detalhe={grupo.whatsapp_id ?? "Aguardando criação no WhatsApp"}
                     />
                   </Celula>
                   <Celula>{ouTraco(grupo.empresa?.nome)}</Celula>

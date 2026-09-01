@@ -13,6 +13,7 @@ import { useRegistro } from "../../hooks/useRegistro";
 import { membrosApi } from "../../services/api";
 import type { Membro } from "../../types/modelos";
 import { formatarDataHora, formatarNumero, ouTraco } from "../../utils/formato";
+import { corSituacao, rotuloSituacao } from "../../utils/situacoesVinculo";
 
 export default function VerMembro() {
   const { id } = useParams();
@@ -78,6 +79,16 @@ export default function VerMembro() {
             <ItemDetalhe rotulo="Status">
               <BadgeStatus ativo={ativo} />
             </ItemDetalhe>
+            <ItemDetalhe rotulo="Origem">
+              <Badge
+                size="sm"
+                color={registro.cadastrado_pelo_sistema ? "light" : "warning"}
+              >
+                {registro.cadastrado_pelo_sistema
+                  ? "Cadastrado no sistema"
+                  : "Encontrado em um grupo"}
+              </Badge>
+            </ItemDetalhe>
             <ItemDetalhe rotulo="Grupos">
               {registro.grupos && registro.grupos.length > 0 ? (
                 <span className="flex flex-wrap gap-2">
@@ -88,12 +99,11 @@ export default function VerMembro() {
                       className="inline-flex"
                       title={`Ver os membros de ${grupo.nome}`}
                     >
-                      <Badge
-                        size="sm"
-                        color={grupo.pivot?.admin ? "info" : "light"}
-                      >
+                      <Badge size="sm" color={corSituacao(grupo.pivot?.situacao)}>
                         {grupo.nome}
                         {grupo.pivot?.admin ? " · admin" : ""}
+                        {" · "}
+                        {rotuloSituacao(grupo.pivot?.situacao)}
                       </Badge>
                     </Link>
                   ))}

@@ -43,6 +43,21 @@ const FILTROS_INICIAIS = {
 const LARGURA_FILTRO = "w-full sm:w-[190px]";
 
 /**
+ * Quanto da ação já rodou, no formato "concluídas/total". A ação nasce
+ * expandida em uma execução por grupo do alvo, então é aqui que o 1:N fica
+ * visível.
+ */
+function progressoDaAcao(acao: Acao): string {
+  const total = acao.execucoes_count;
+
+  if (total === undefined) {
+    return "—";
+  }
+
+  return `${acao.execucoes_concluidas_count ?? 0}/${total}`;
+}
+
+/**
  * Listagem das ações. Não há cadastro: a ação é criada pelo sistema.
  * A visualização abre em modal; a edição (só o agendamento) tem página.
  */
@@ -216,6 +231,8 @@ export default function ListaAcoes() {
               <CelulaCabecalho>Tipo de grupo</CelulaCabecalho>
               <CelulaCabecalho>Grupo</CelulaCabecalho>
               <CelulaCabecalho>Agendamento</CelulaCabecalho>
+              <CelulaCabecalho>Execuções</CelulaCabecalho>
+              <CelulaCabecalho>Finalizado</CelulaCabecalho>
               <CelulaCabecalho>Data de criação</CelulaCabecalho>
               <CelulaCabecalho>Ações</CelulaCabecalho>
             </TableRow>
@@ -228,6 +245,8 @@ export default function ListaAcoes() {
                 <Celula>{ouTraco(acao.grupo_tipo?.nome)}</Celula>
                 <Celula>{ouTraco(acao.grupo?.nome)}</Celula>
                 <Celula>{formatarDataHora(acao.agendamento)}</Celula>
+                <Celula>{progressoDaAcao(acao)}</Celula>
+                <Celula>{formatarDataHora(acao.finalizado)}</Celula>
                 <Celula>{formatarDataHora(acao.created_at)}</Celula>
                 <Celula>
                   <AcoesLinha

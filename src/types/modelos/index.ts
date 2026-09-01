@@ -9,6 +9,7 @@ export type {
   AcaoGrupoConta,
   DadosAcaoGrupo,
 } from "./acaoGrupo";
+export type { AcaoGrupoLog, AcaoGrupoLogExecucao } from "./acaoGrupoLog";
 export type { AcaoTipo, AcaoTipoResumo, DadosAcaoTipo } from "./acaoTipo";
 export type {
   Empresa,

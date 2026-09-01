@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import CabecalhoPagina from "../../components/crud/CabecalhoPagina";
 import CartaoListagem from "../../components/crud/CartaoListagem";
@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+import { TimeIcon } from "../../icons";
 import { useAutenticacao } from "../../context/AutenticacaoContext";
 import { useEmpresaAtiva } from "../../context/EmpresaAtivaContext";
 import { useListagem } from "../../hooks/useListagem";
@@ -203,6 +204,18 @@ export default function ListaAcoesGrupos() {
                   <AcoesLinha
                     caminhoEditar={`/acoes-grupos/${execucao.id}/editar`}
                     podeEditar={temPermissao("acao_grupo.editar")}
+                    extra={
+                      temPermissao("acao_grupo_log.ver") && (
+                        <Link
+                          to={`/acoes-grupos-logs?acao_grupo_id=${execucao.id}`}
+                          title="Logs desta execução"
+                          aria-label="Logs desta execução"
+                          className="text-gray-500 transition hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90"
+                        >
+                          <TimeIcon className="size-5 fill-current" />
+                        </Link>
+                      )
+                    }
                   />
                 </Celula>
               </TableRow>

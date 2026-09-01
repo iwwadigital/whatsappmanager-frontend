@@ -16,8 +16,13 @@ export interface Acao {
   /** JSON já decodificado pela API; objeto vazio quando não há dados. */
   payload: Record<string, unknown>;
   agendamento: string | null;
+  /** Quando a ação encerrou — a última execução dela terminou. */
+  finalizado: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  /** Contagens vindas do withCount do controller. */
+  execucoes_count?: number;
+  execucoes_concluidas_count?: number;
   tipo?: AcaoTipoResumo | null;
   /** A relação `grupoTipo` do Model sai em snake_case no JSON. */
   grupo_tipo?: GrupoTipoResumo | null;

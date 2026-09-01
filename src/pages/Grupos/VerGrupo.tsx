@@ -95,7 +95,7 @@ export default function VerGrupo() {
               <AvatarNome
                 url={registro.imagem_capa_url}
                 nome={registro.nome}
-                detalhe={registro.whatsapp_id}
+                detalhe={registro.whatsapp_id ?? "Aguardando criação no WhatsApp"}
               />
             </div>
 
@@ -103,6 +103,13 @@ export default function VerGrupo() {
               <ItemDetalhe rotulo="Código">{registro.id}</ItemDetalhe>
               <ItemDetalhe rotulo="Empresa">
                 {ouTraco(registro.empresa?.nome)}
+              </ItemDetalhe>
+              <ItemDetalhe rotulo="ID do WhatsApp">
+                {registro.whatsapp_id ?? (
+                  <span className="text-warning-600 dark:text-warning-400">
+                    Aguardando a criação do grupo no WhatsApp
+                  </span>
+                )}
               </ItemDetalhe>
               <ItemDetalhe rotulo="Participantes">
                 <span className={`font-medium ${corOcupacao(percentual)}`}>

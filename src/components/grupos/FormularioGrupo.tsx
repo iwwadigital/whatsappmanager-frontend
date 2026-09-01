@@ -73,7 +73,9 @@ export default function FormularioGrupo({
 
     aoEnviar({
       nome,
-      whatsapp_id: whatsappId,
+      // Vazio vira nulo: a coluna tem índice único, e "em branco" aqui
+      // significa "ainda não tem", não "é vazio".
+      whatsapp_id: whatsappId.trim() === "" ? null : whatsappId.trim(),
       quantidade_participantes_max: maximo.trim() === "" ? null : Number(maximo),
       descricao: descricao.trim() === "" ? null : descricao,
       convite_link: conviteLink.trim() === "" ? null : conviteLink,
@@ -114,11 +116,10 @@ export default function FormularioGrupo({
         <CampoTexto
           id="whatsapp_id"
           label="ID do WhatsApp"
-          obrigatorio
           valor={whatsappId}
           aoAlterar={setWhatsappId}
           placeholder="120363000000000000@g.us"
-          dica="Por enquanto informado manualmente."
+          dica="Opcional: deixe em branco para o robô criar o grupo no WhatsApp e preencher o ID. Informe apenas se o grupo já existe lá. Enquanto estiver vazio, as demais ações do grupo ficam aguardando."
           erro={erros.whatsapp_id?.[0]}
         />
 

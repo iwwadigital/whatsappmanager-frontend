@@ -10,7 +10,11 @@ export interface GrupoResumo {
 /** Model: App\Models\Grupo\Grupo (tabela "grupos"). */
 export interface Grupo extends GrupoResumo {
   empresa_id: number;
-  whatsapp_id: string;
+  /**
+   * Nulo enquanto o grupo não existe no WhatsApp: o robô o preenche ao
+   * executar a ação `grupo.criar`. As demais ações do grupo só rodam depois.
+   */
+  whatsapp_id: string | null;
   /** Somente leitura: alimentado pela integração, nunca pelo formulário. */
   quantidade_participantes: number;
   quantidade_participantes_max: number | null;
@@ -41,7 +45,8 @@ export interface Grupo extends GrupoResumo {
  */
 export interface DadosGrupo {
   nome: string;
-  whatsapp_id: string;
+  /** Nulo deixa a criação no WhatsApp por conta do robô. */
+  whatsapp_id: string | null;
   quantidade_participantes_max: number | null;
   descricao: string | null;
   convite_link: string | null;

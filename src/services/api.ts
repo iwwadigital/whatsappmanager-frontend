@@ -2,6 +2,7 @@ import type { RespostaApi } from "../types/api";
 import type {
   Acao,
   AcaoGrupo,
+  AcaoGrupoLog,
   AcaoTipo,
   Autenticacao,
   DadosAcao,
@@ -57,13 +58,23 @@ export const acoesApi = criarRecurso<Acao, DadosAcao>({
 
 /**
  * Execuções das ações nos grupos. A API não tem `store` nem `destroy`: a
- * linha é criada pelo robô, e só `prioridade` e `iniciar_apartir_de` podem
- * ser editados.
+ * linha nasce junto com a ação, e só `prioridade` e `iniciar_apartir_de`
+ * podem ser editados.
  */
 export const acoesGruposApi = criarRecurso<AcaoGrupo, DadosAcaoGrupo>({
   caminho: "acoes-grupos",
   chaveLista: "acoes_grupos",
   chaveItem: "acao_grupo",
+});
+
+/**
+ * Logs das execuções — o histórico de tentativas do robô. Somente leitura:
+ * `criar`, `atualizar` e `remover` deste recurso não existem na API.
+ */
+export const acoesGruposLogsApi = criarRecurso<AcaoGrupoLog, never>({
+  caminho: "acoes-grupos-logs",
+  chaveLista: "acoes_grupos_logs",
+  chaveItem: "acao_grupo_log",
 });
 
 export const empresasApi = criarRecurso<Empresa, DadosEmpresa>({

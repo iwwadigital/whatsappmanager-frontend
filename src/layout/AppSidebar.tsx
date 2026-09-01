@@ -74,6 +74,11 @@ const itensMenu: ItemMenu[] = [
         permissao: "acao_grupo.ver",
       },
       {
+        nome: "Logs das execuções",
+        caminho: "/acoes-grupos-logs",
+        permissao: "acao_grupo_log.ver",
+      },
+      {
         nome: "Tipos de ação",
         caminho: "/acoes-tipos",
         permissao: "acao_tipo.ver",

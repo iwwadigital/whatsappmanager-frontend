@@ -181,6 +181,15 @@ export default function ModalGrupoMembro({
           />
         </div>
 
+        {!edicao && (
+          <p className="mt-6 rounded-lg bg-gray-50 p-3 text-sm text-gray-600 dark:bg-white/[0.03] dark:text-gray-400">
+            O membro <strong>recebe o link de convite</strong> e entra no grupo
+            por conta própria — o sistema não adiciona ninguém à força, porque
+            muita gente bloqueia isso e a conta corre risco de ser banida. Até
+            ele aceitar, o vínculo fica como "Aguardando entrar".
+          </p>
+        )}
+
         <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
           <button
             type="button"
