@@ -5,6 +5,12 @@ import type {
   AcaoGrupoLog,
   AcaoTipo,
   Autenticacao,
+  Cadastro,
+  CadastroTipo,
+  DadosCadastro,
+  DadosCadastroTipo,
+  CampoPersonalizado,
+  TipoCampoCatalogo,
   DadosAcao,
   DadosAcaoGrupo,
   DadosAcaoTipo,
@@ -34,7 +40,7 @@ import type {
   WhatsappApi,
   WhatsappConta,
 } from "../types/modelos";
-import { requisitar } from "./http";
+import { enviarArquivo, requisitar } from "./http";
 import { criarRecurso } from "./recurso";
 
 /* ------------------------------- Recursos ------------------------------- */
@@ -76,6 +82,75 @@ export const acoesGruposLogsApi = criarRecurso<AcaoGrupoLog, never>({
   chaveLista: "acoes_grupos_logs",
   chaveItem: "acao_grupo_log",
 });
+
+/** Tipos de cadastro da empresa ativa. */
+export const cadastrosTiposApi = criarRecurso<CadastroTipo, DadosCadastroTipo>({
+  caminho: "cadastros-tipos",
+  chaveLista: "cadastros_tipos",
+  chaveItem: "cadastro_tipo",
+});
+
+/**
+ * Cadastros da empresa ativa.
+ *
+ * O `show`, o `criar` e o `atualizar` devolvem também a `declaracao` dos
+ * campos personalizados do tipo e os valores em `meta` — é com isso que o
+ * formulário se monta.
+ */
+export const cadastrosApi = criarRecurso<Cadastro, DadosCadastro>({
+  caminho: "cadastros",
+  chaveLista: "cadastros",
+  chaveItem: "cadastro",
+});
+
+/**
+ * Arquivo de um campo personalizado do tipo `file`.
+ *
+ * O envio vem **depois** de salvar o cadastro (o caminho no disco usa o id),
+ * como no upload de imagem de capa. `campo` é a chave do campo — ou o
+ * caminho da linha, quando ele está dentro de um repetidor
+ * (`anexos.0.comprovante`).
+ */
+export async function enviarArquivoDoCampo(
+  id: number | string,
+  campo: string,
+  arquivo: File,
+): Promise<Cadastro> {
+  const resposta = await enviarArquivo({
+    caminho: `cadastros/${id}/arquivo`,
+    campo: "arquivo",
+    arquivo,
+    extras: { campo },
+  });
+
+  return resposta.cadastro as Cadastro;
+}
+
+/** Remove o arquivo de um campo personalizado. */
+export async function removerArquivoDoCampo(
+  id: number | string,
+  campo: string,
+): Promise<Cadastro> {
+  const resposta = await requisitar({
+    metodo: "DELETE",
+    caminho: `cadastros/${id}/arquivo`,
+    parametros: { campo },
+  });
+
+  return resposta.cadastro as Cadastro;
+}
+
+/**
+ * Catálogo dos tipos de campo personalizado que o sistema sabe tratar.
+ *
+ * A tela de campos personalizados se monta a partir daqui em vez de ter a
+ * lista escrita: tipo novo no back aparece sozinho.
+ */
+export async function listarTiposDeCampo(): Promise<TipoCampoCatalogo[]> {
+  const resposta = await requisitar({ caminho: "cadastros-campos-tipos" });
+
+  return (resposta.cadastros_campos_tipos as TipoCampoCatalogo[]) ?? [];
+}
 
 export const empresasApi = criarRecurso<Empresa, DadosEmpresa>({
   caminho: "empresas",
@@ -280,4 +355,21 @@ export const autenticacaoApi = {
 /** Extrai o bloco "autenticacao" do retorno do login. */
 export function extrairAutenticacao(resposta: RespostaApi): Autenticacao {
   return resposta.autenticacao as Autenticacao;
+}
+
+/**
+ * Os campos personalizados declarados para um tipo de cadastro.
+ *
+ * O formulário do cadastro pede isto ao escolher (ou trocar) o tipo. A rota
+ * é protegida por `cadastro.ver`: quem cadastra não precisa de permissão
+ * sobre a empresa nem sobre o cadastro de tipos.
+ */
+export async function listarCamposDoTipo(
+  cadastroTipoId: number | string,
+): Promise<CampoPersonalizado[]> {
+  const resposta = await requisitar({
+    caminho: `cadastros-tipos/${cadastroTipoId}/campos`,
+  });
+
+  return (resposta.campos as CampoPersonalizado[]) ?? [];
 }

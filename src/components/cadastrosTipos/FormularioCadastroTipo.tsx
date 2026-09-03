@@ -1,60 +1,61 @@
 import { useEffect, useState, type FormEvent } from "react";
-import CampoTextarea from "../campos/CampoTextarea";
 import CampoTexto from "../campos/CampoTexto";
 import Carregador from "../campos/Carregador";
 import Button from "../ui/button/Button";
 import { MensagemErro } from "../crud/EstadosLista";
+import { gerarSlug } from "../../utils/slug";
 import type { ErrosValidacao } from "../../types/api";
-import type { AcaoTipo, DadosAcaoTipo } from "../../types/modelos";
+import type { CadastroTipo, DadosCadastroTipo } from "../../types/modelos";
 
-/**
- * A escala é crescente (menor roda primeiro), então tipo novo entra no fim da
- * fila até alguém lhe dar um lugar na sequência. 100 é o mesmo padrão da
- * coluna no banco, depois do último tipo numerado pelo seeder (80).
- */
-const PADRAO_PRIORIDADE = "100";
-
-interface FormularioAcaoTipoProps {
+interface FormularioCadastroTipoProps {
   /** Registro em edição; ausente no cadastro. */
-  registro?: AcaoTipo | null;
+  registro?: CadastroTipo | null;
   salvando: boolean;
   erros: ErrosValidacao;
   erroGeral?: string | null;
-  aoEnviar: (dados: DadosAcaoTipo) => void;
+  aoEnviar: (dados: DadosCadastroTipo) => void;
   aoCancelar: () => void;
 }
 
 /** Formulário compartilhado pelas telas de cadastro e edição. */
-export default function FormularioAcaoTipo({
+export default function FormularioCadastroTipo({
   registro,
   salvando,
   erros,
   erroGeral,
   aoEnviar,
   aoCancelar,
-}: FormularioAcaoTipoProps) {
+}: FormularioCadastroTipoProps) {
   const [nome, setNome] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [funcao, setFuncao] = useState("");
-  const [prioridadePadrao, setPrioridadePadrao] = useState(PADRAO_PRIORIDADE);
+  const [slug, setSlug] = useState("");
+  const [slugManual, setSlugManual] = useState(false);
 
   useEffect(() => {
     setNome(registro?.nome ?? "");
-    setDescricao(registro?.descricao ?? "");
-    setFuncao(registro?.funcao ?? "");
-    setPrioridadePadrao(
-      registro ? String(registro.prioridade_padrao) : PADRAO_PRIORIDADE,
-    );
+    setSlug(registro?.slug ?? "");
+    // Na edição o slug já existe: não é regerado ao mexer no nome.
+    setSlugManual(Boolean(registro));
   }, [registro]);
+
+  const alterarNome = (valor: string) => {
+    setNome(valor);
+
+    if (!slugManual) {
+      setSlug(gerarSlug(valor));
+    }
+  };
+
+  const alterarSlug = (valor: string) => {
+    setSlugManual(true);
+    setSlug(gerarSlug(valor));
+  };
 
   const enviar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
 
     aoEnviar({
       nome,
-      descricao: descricao.trim() === "" ? null : descricao.trim(),
-      funcao,
-      prioridade_padrao: Number(prioridadePadrao) || 0,
+      slug: slug.trim() === "" ? gerarSlug(nome) : slug,
     });
   };
 
@@ -75,44 +76,21 @@ export default function FormularioAcaoTipo({
           label="Nome"
           obrigatorio
           valor={nome}
-          aoAlterar={setNome}
-          placeholder="Criar grupo"
+          aoAlterar={alterarNome}
+          placeholder="Companhia aérea"
           erro={erros.nome?.[0]}
         />
 
         <CampoTexto
-          id="funcao"
-          label="Função"
+          id="slug"
+          label="Slug"
           obrigatorio
-          valor={funcao}
-          aoAlterar={setFuncao}
-          placeholder="grupo.criar"
-          dica="Chave da função que o robô executa, no formato recurso.acao."
-          erro={erros.funcao?.[0]}
+          valor={slug}
+          aoAlterar={alterarSlug}
+          placeholder="companhia-aerea"
+          dica="Gerado a partir do nome; pode ser ajustado. É por ele que os campos personalizados apontam para este tipo."
+          erro={erros.slug?.[0]}
         />
-
-        <CampoTexto
-          id="prioridade_padrao"
-          label="Prioridade padrão"
-          tipo="number"
-          obrigatorio
-          valor={prioridadePadrao}
-          aoAlterar={setPrioridadePadrao}
-          placeholder="0"
-          dica="Ordem em que o robô executa: menor primeiro. Toda execução deste tipo nasce com este valor."
-          erro={erros.prioridade_padrao?.[0]}
-        />
-
-        <div className="sm:col-span-2">
-          <CampoTextarea
-            id="descricao"
-            label="Descrição"
-            valor={descricao}
-            aoAlterar={setDescricao}
-            placeholder="O que este tipo de ação faz"
-            erro={erros.descricao?.[0]}
-          />
-        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">

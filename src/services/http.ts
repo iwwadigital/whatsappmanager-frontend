@@ -192,6 +192,13 @@ export interface OpcoesArquivo {
   /** Nome do campo do arquivo no FormData (ex.: "imagem"). */
   campo: string;
   arquivo: File;
+  /**
+   * Outros campos do formulário, enviados junto com o arquivo.
+   *
+   * O upload da imagem de capa não usa nenhum; o arquivo de um campo
+   * personalizado manda em `campo` qual campo do cadastro vai recebê-lo.
+   */
+  extras?: Record<string, string>;
 }
 
 /**
@@ -203,11 +210,14 @@ export async function enviarArquivo({
   caminho,
   campo,
   arquivo,
+  extras = {},
 }: OpcoesArquivo): Promise<RespostaApi> {
   const url = `${URL_BASE}/${caminho.replace(/^\/+/, "")}`;
   const corpo = new FormData();
 
   corpo.append(campo, arquivo);
+
+  Object.entries(extras).forEach(([chave, valor]) => corpo.append(chave, valor));
 
   let resposta: Response;
 

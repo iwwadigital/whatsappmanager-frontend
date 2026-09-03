@@ -1,20 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import CampoJson, {
-  jsonParaTexto,
-  jsonValido,
-  textoParaJson,
-} from "../campos/CampoJson";
+import { Link } from "react-router";
 import CampoSelect from "../campos/CampoSelect";
 import CampoTexto from "../campos/CampoTexto";
 import Carregador from "../campos/Carregador";
 import Button from "../ui/button/Button";
 import { MensagemErro } from "../crud/EstadosLista";
 import type { ErrosValidacao } from "../../types/api";
-import type {
-  CamposPersonalizados,
-  DadosEmpresa,
-  Empresa,
-} from "../../types/modelos";
+import type { DadosEmpresa, Empresa } from "../../types/modelos";
 import { normalizarHorario, opcoesHorarioAlertas } from "../../utils/horarios";
 
 /** Mesmos padrões da tabela "empresas". */
@@ -47,8 +39,6 @@ export default function FormularioEmpresa({
   );
   const [horarioAlertas, setHorarioAlertas] = useState(PADRAO_HORARIO_ALERTAS);
   const [conviteDias, setConviteDias] = useState(PADRAO_CONVITE_DIAS);
-  const [camposPersonalizados, setCamposPersonalizados] = useState("");
-  const [erroJson, setErroJson] = useState<string | null>(null);
 
   const horarios = useMemo(() => opcoesHorarioAlertas(), []);
 
@@ -68,31 +58,20 @@ export default function FormularioEmpresa({
         ? String(registro.convite_quantidade_dias_atualizacao)
         : PADRAO_CONVITE_DIAS,
     );
-    setCamposPersonalizados(
-      jsonParaTexto(registro?.cadastros_campos_personalizados),
-    );
-    setErroJson(null);
   }, [registro]);
 
   const enviar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
-
-    if (!jsonValido(camposPersonalizados)) {
-      setErroJson("JSON inválido: revise o conteúdo antes de salvar.");
-
-      return;
-    }
-
-    setErroJson(null);
 
     aoEnviar({
       nome,
       quantidade_max_admin_por_grupo: Number(quantidadeMaxAdmin),
       horario_alertas_do_dia: horarioAlertas,
       convite_quantidade_dias_atualizacao: Number(conviteDias),
-      cadastros_campos_personalizados: textoParaJson(
-        camposPersonalizados,
-      ) as CamposPersonalizados,
+      // Os campos personalizados têm tela própria: mandá-los daqui
+      // sobrescreveria a configuração com o que este formulário não edita.
+      cadastros_campos_personalizados:
+        registro?.cadastros_campos_personalizados ?? null,
     });
   };
 
@@ -154,21 +133,25 @@ export default function FormularioEmpresa({
           erro={erros.convite_quantidade_dias_atualizacao?.[0]}
         />
 
-        <div className="sm:col-span-2">
-          <CampoJson
-            id="cadastros_campos_personalizados"
-            label="Campos personalizados de cadastro"
-            valor={camposPersonalizados}
-            aoAlterar={(valor) => {
-              setCamposPersonalizados(valor);
-              setErroJson(null);
-            }}
-            dica="Opcional: informe um JSON com os campos extras do cadastro."
-            erro={
-              erros.cadastros_campos_personalizados?.[0] ?? erroJson ?? undefined
-            }
-          />
-        </div>
+        {/* O construtor tem tela própria: são grupos por tipo de cadastro,
+            campos dentro de cada grupo e, num repetidor, campos dentro de
+            campos. Só aparece na edição, quando a empresa já tem id. */}
+        {registro && (
+          <div className="sm:col-span-2 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+            <p className="mb-1 text-sm font-medium text-gray-800 dark:text-white/90">
+              Campos personalizados de cadastro
+            </p>
+            <p className="mb-3 text-theme-xs text-gray-500 dark:text-gray-400">
+              Os campos extras que cada tipo de cadastro recebe.
+            </p>
+            <Link
+              to={`/empresas/${registro.id}/campos-personalizados`}
+              className="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
+            >
+              Configurar campos personalizados
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">

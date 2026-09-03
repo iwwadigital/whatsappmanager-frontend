@@ -31,6 +31,15 @@ import ListaAcoesGrupos from "./pages/AcoesGrupos/ListaAcoesGrupos";
 import EditarAcaoGrupo from "./pages/AcoesGrupos/EditarAcaoGrupo";
 import ListaAcoesGruposLogs from "./pages/AcoesGruposLogs/ListaAcoesGruposLogs";
 
+import ListaCadastros from "./pages/Cadastros/ListaCadastros";
+import NovoCadastro from "./pages/Cadastros/NovoCadastro";
+import EditarCadastro from "./pages/Cadastros/EditarCadastro";
+import VerCadastro from "./pages/Cadastros/VerCadastro";
+import ListaCadastrosTipos from "./pages/CadastrosTipos/ListaCadastrosTipos";
+import NovoCadastroTipo from "./pages/CadastrosTipos/NovoCadastroTipo";
+import EditarCadastroTipo from "./pages/CadastrosTipos/EditarCadastroTipo";
+import VerCadastroTipo from "./pages/CadastrosTipos/VerCadastroTipo";
+import CamposPersonalizadosEmpresa from "./pages/Empresas/CamposPersonalizadosEmpresa";
 import ListaAcoesTipos from "./pages/AcoesTipos/ListaAcoesTipos";
 import NovoAcaoTipo from "./pages/AcoesTipos/NovoAcaoTipo";
 import EditarAcaoTipo from "./pages/AcoesTipos/EditarAcaoTipo";
@@ -285,6 +294,36 @@ export default function App() {
               />
             </Route>
 
+            {/* Cadastros */}
+            <Route element={<RotaComPermissao permissao="cadastro.ver" />}>
+              <Route path="/cadastros" element={<ListaCadastros />} />
+              <Route path="/cadastros/:id" element={<VerCadastro />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="cadastro.criar" />}>
+              <Route path="/cadastros/novo" element={<NovoCadastro />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="cadastro.editar" />}>
+              <Route path="/cadastros/:id/editar" element={<EditarCadastro />} />
+            </Route>
+
+            {/* Tipos de cadastro */}
+            <Route element={<RotaComPermissao permissao="cadastro_tipo.ver" />}>
+              <Route path="/cadastros-tipos" element={<ListaCadastrosTipos />} />
+              <Route path="/cadastros-tipos/:id" element={<VerCadastroTipo />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="cadastro_tipo.criar" />}>
+              <Route
+                path="/cadastros-tipos/novo"
+                element={<NovoCadastroTipo />}
+              />
+            </Route>
+            <Route element={<RotaComPermissao permissao="cadastro_tipo.editar" />}>
+              <Route
+                path="/cadastros-tipos/:id/editar"
+                element={<EditarCadastroTipo />}
+              />
+            </Route>
+
             {/* Empresas */}
             <Route element={<RotaComPermissao permissao="empresa.ver" />}>
               <Route path="/empresas" element={<ListaEmpresas />} />
@@ -295,6 +334,11 @@ export default function App() {
             </Route>
             <Route element={<RotaComPermissao permissao="empresa.editar" />}>
               <Route path="/empresas/:id/editar" element={<EditarEmpresa />} />
+              {/* O construtor de campos personalizados de cadastro. */}
+              <Route
+                path="/empresas/:id/campos-personalizados"
+                element={<CamposPersonalizadosEmpresa />}
+              />
             </Route>
           </Route>
         </Route>

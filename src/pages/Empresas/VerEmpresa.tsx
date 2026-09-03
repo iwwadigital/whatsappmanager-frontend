@@ -1,6 +1,5 @@
 import { Link, useParams } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
-import { jsonParaTexto } from "../../components/campos/CampoJson";
 import CabecalhoPagina from "../../components/crud/CabecalhoPagina";
 import ItemDetalhe from "../../components/crud/ItemDetalhe";
 import {
@@ -22,9 +21,11 @@ export default function VerEmpresa() {
     id,
   );
 
-  const camposPersonalizados = jsonParaTexto(
-    registro?.cadastros_campos_personalizados,
-  );
+  // Quantos tipos de cadastro já têm campos configurados. O conteúdo em si
+  // é longo demais para a tela de detalhes: quem quiser vê-lo abre o
+  // construtor.
+  const gruposConfigurados =
+    registro?.cadastros_campos_personalizados?.length ?? 0;
 
   return (
     <div>
@@ -78,13 +79,19 @@ export default function VerEmpresa() {
               {registro.convite_quantidade_dias_atualizacao}
             </ItemDetalhe>
             <ItemDetalhe rotulo="Campos personalizados de cadastro">
-              {camposPersonalizados === "" ? (
-                "—"
-              ) : (
-                <pre className="max-h-64 overflow-auto rounded-lg bg-gray-50 p-3 font-mono text-xs text-gray-700 dark:bg-white/[0.03] dark:text-gray-300">
-                  {camposPersonalizados}
-                </pre>
-              )}
+              <span className="flex flex-wrap items-center gap-3">
+                {gruposConfigurados === 0
+                  ? "Nenhum tipo configurado"
+                  : `${gruposConfigurados} tipo(s) de cadastro configurado(s)`}
+                {temPermissao("empresa.editar") && (
+                  <Link
+                    to={`/empresas/${registro.id}/campos-personalizados`}
+                    className="text-brand-500 hover:underline"
+                  >
+                    Configurar
+                  </Link>
+                )}
+              </span>
             </ItemDetalhe>
             <ItemDetalhe rotulo="Cadastrada em">
               {formatarDataHora(registro.created_at)}

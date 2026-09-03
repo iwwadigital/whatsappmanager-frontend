@@ -16,6 +16,7 @@ import {
   GridIcon,
   GroupIcon,
   HorizontaLDots,
+  ListIcon,
   MultiUserIcon,
   PlugInIcon,
   UserCircleIcon,
@@ -82,6 +83,18 @@ const itensMenu: ItemMenu[] = [
         nome: "Tipos de ação",
         caminho: "/acoes-tipos",
         permissao: "acao_tipo.ver",
+      },
+    ],
+  },
+  {
+    nome: "Cadastros",
+    icone: <ListIcon />,
+    subItens: [
+      { nome: "Cadastros", caminho: "/cadastros", permissao: "cadastro.ver" },
+      {
+        nome: "Tipos de cadastro",
+        caminho: "/cadastros-tipos",
+        permissao: "cadastro_tipo.ver",
       },
     ],
   },

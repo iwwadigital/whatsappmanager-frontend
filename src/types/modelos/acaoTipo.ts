@@ -10,6 +10,12 @@ export interface AcaoTipoResumo {
 export interface AcaoTipo extends AcaoTipoResumo {
   descricao: string | null;
   /**
+   * Prioridade com que as execuções deste tipo nascem em `acoes_grupos`.
+   * Menor primeiro: é ela que põe a fila do grupo na ordem certa (criar,
+   * promover administradores, imagem, restrições e, por último, convite).
+   */
+  prioridade_padrao: number;
+  /**
    * A `funcao` já tem código no robô? Tipo cadastrado com uma função ainda
    * não implementada é aceito, mas o robô não consegue executá-lo.
    */
@@ -23,4 +29,5 @@ export interface DadosAcaoTipo {
   nome: string;
   descricao: string | null;
   funcao: string;
+  prioridade_padrao: number;
 }

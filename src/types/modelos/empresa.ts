@@ -1,8 +1,6 @@
-/**
- * Conteúdo do campo "cadastros_campos_personalizados": a API grava e devolve
- * JSON livre (objeto ou lista), sem estrutura fixa.
- */
-export type CamposPersonalizados = Record<string, unknown> | unknown[] | null;
+import type { CamposPersonalizados } from "./campoPersonalizado";
+
+export type { CamposPersonalizados };
 
 /**
  * Empresa no formato reduzido de `GET /empresas-disponiveis`, usado pelo

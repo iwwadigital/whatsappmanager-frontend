@@ -6,8 +6,6 @@ import CartaoListagem from "../../components/crud/CartaoListagem";
 import BotaoNovo from "../../components/crud/BotaoNovo";
 import AcoesLinha from "../../components/crud/AcoesLinha";
 import ModalExclusao from "../../components/crud/ModalExclusao";
-import TextoTruncado from "../../components/crud/TextoTruncado";
-import Badge from "../../components/ui/badge/Badge";
 import CampoBusca from "../../components/campos/CampoBusca";
 import {
   Celula,
@@ -21,28 +19,29 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { useAutenticacao } from "../../context/AutenticacaoContext";
+import { useEmpresaAtiva } from "../../context/EmpresaAtivaContext";
 import { useListagem } from "../../hooks/useListagem";
-import { acoesTiposApi } from "../../services/api";
+import { cadastrosTiposApi } from "../../services/api";
 import { mensagemDoErro } from "../../services/http";
-import type { AcaoTipo } from "../../types/modelos";
-import { formatarDataHora } from "../../utils/formato";
+import type { CadastroTipo } from "../../types/modelos";
 
 const FILTROS_INICIAIS = { nome: "" };
 
-export default function ListaAcoesTipos() {
+export default function ListaCadastrosTipos() {
   const { temPermissao } = useAutenticacao();
+  const { empresaId } = useEmpresaAtiva();
   const local = useLocation();
 
-  // O catálogo é global: não depende da empresa ativa.
-  const listagem = useListagem<AcaoTipo>({
-    listar: acoesTiposApi.listar,
+  const listagem = useListagem<CadastroTipo>({
+    listar: cadastrosTiposApi.listar,
     filtrosIniciais: FILTROS_INICIAIS,
+    chaveRecarga: empresaId,
   });
 
   const [mensagem, setMensagem] = useState<string | null>(
     (local.state as { mensagem?: string } | null)?.mensagem ?? null,
   );
-  const [alvo, setAlvo] = useState<AcaoTipo | null>(null);
+  const [alvo, setAlvo] = useState<CadastroTipo | null>(null);
   const [excluindo, setExcluindo] = useState(false);
   const [erroExclusao, setErroExclusao] = useState<string | null>(null);
 
@@ -53,7 +52,7 @@ export default function ListaAcoesTipos() {
     setErroExclusao(null);
 
     try {
-      const retorno = await acoesTiposApi.remover(alvo.id);
+      const retorno = await cadastrosTiposApi.remover(alvo.id);
 
       setAlvo(null);
       setMensagem(retorno);
@@ -73,13 +72,16 @@ export default function ListaAcoesTipos() {
   return (
     <div>
       <PageMeta
-        title="Tipos de ação | WhatsApp Manager"
-        description="Listagem de tipos de ação"
+        title="Tipos de cadastro | WhatsApp Manager"
+        description="Listagem de tipos de cadastro"
       />
 
       <CabecalhoPagina
-        titulo="Tipos de ação"
-        trilha={[{ rotulo: "Ações", caminho: "/acoes" }, { rotulo: "Tipos" }]}
+        titulo="Tipos de cadastro"
+        trilha={[
+          { rotulo: "Cadastros", caminho: "/cadastros" },
+          { rotulo: "Tipos" },
+        ]}
       />
 
       <CartaoListagem
@@ -99,8 +101,10 @@ export default function ListaAcoesTipos() {
           />
         }
         acoes={
-          temPermissao("acao_tipo.criar") && (
-            <BotaoNovo para="/acoes-tipos/novo">Novo tipo de ação</BotaoNovo>
+          temPermissao("cadastro_tipo.criar") && (
+            <BotaoNovo para="/cadastros-tipos/novo">
+              Novo tipo de cadastro
+            </BotaoNovo>
           )
         }
       >
@@ -108,10 +112,7 @@ export default function ListaAcoesTipos() {
           <TableHeader className={CLASSE_CABECALHO}>
             <TableRow>
               <CelulaCabecalho>Nome</CelulaCabecalho>
-              <CelulaCabecalho>Descrição</CelulaCabecalho>
-              <CelulaCabecalho>Função</CelulaCabecalho>
-              <CelulaCabecalho>Prioridade padrão</CelulaCabecalho>
-              <CelulaCabecalho>Data de criação</CelulaCabecalho>
+              <CelulaCabecalho>Slug</CelulaCabecalho>
               <CelulaCabecalho>Ações</CelulaCabecalho>
             </TableRow>
           </TableHeader>
@@ -120,37 +121,24 @@ export default function ListaAcoesTipos() {
             {listagem.itens.map((tipo) => (
               <TableRow key={tipo.id}>
                 <Celula destaque>{tipo.nome}</Celula>
-                {/* Até 50 caracteres; o resto abre em tooltip. */}
-                <Celula className="whitespace-normal">
-                  <TextoTruncado texto={tipo.descricao} />
-                </Celula>
+                {/* Chave estável: é por ela que os campos personalizados
+                    apontam para o tipo. */}
                 <Celula>
-                  <span className="flex flex-wrap items-center gap-2">
-                    <code className="rounded bg-gray-100 px-2 py-1 text-theme-xs text-gray-700 dark:bg-white/[0.06] dark:text-gray-300">
-                      {tipo.funcao}
-                    </code>
-                    {/* Sem código no robô, a ação deste tipo não executa. */}
-                    {tipo.funcao_implementada === false && (
-                      <Badge size="sm" color="warning">
-                        Não implementada
-                      </Badge>
-                    )}
-                  </span>
+                  <code className="rounded bg-gray-100 px-2 py-1 text-theme-xs text-gray-700 dark:bg-white/[0.06] dark:text-gray-300">
+                    {tipo.slug}
+                  </code>
                 </Celula>
-                {/* Prioridade que as execuções deste tipo recebem ao nascer. */}
-                <Celula>{tipo.prioridade_padrao}</Celula>
-                <Celula>{formatarDataHora(tipo.created_at)}</Celula>
                 <Celula>
                   <AcoesLinha
-                    caminhoVer={`/acoes-tipos/${tipo.id}`}
-                    caminhoEditar={`/acoes-tipos/${tipo.id}/editar`}
+                    caminhoVer={`/cadastros-tipos/${tipo.id}`}
+                    caminhoEditar={`/cadastros-tipos/${tipo.id}/editar`}
                     aoExcluir={() => {
                       setErroExclusao(null);
                       setAlvo(tipo);
                     }}
-                    podeVer={temPermissao("acao_tipo.ver")}
-                    podeEditar={temPermissao("acao_tipo.editar")}
-                    podeExcluir={temPermissao("acao_tipo.excluir")}
+                    podeVer={temPermissao("cadastro_tipo.ver")}
+                    podeEditar={temPermissao("cadastro_tipo.editar")}
+                    podeExcluir={temPermissao("cadastro_tipo.excluir")}
                   />
                 </Celula>
               </TableRow>
@@ -161,7 +149,7 @@ export default function ListaAcoesTipos() {
 
       <ModalExclusao
         aberto={alvo !== null}
-        descricao={`o tipo de ação "${alvo?.nome ?? ""}"`}
+        descricao={`o tipo de cadastro "${alvo?.nome ?? ""}"`}
         excluindo={excluindo}
         erro={erroExclusao}
         aoConfirmar={excluir}

@@ -12,6 +12,28 @@ export type {
 export type { AcaoGrupoLog, AcaoGrupoLogExecucao } from "./acaoGrupoLog";
 export type { AcaoTipo, AcaoTipoResumo, DadosAcaoTipo } from "./acaoTipo";
 export type {
+  Cadastro,
+  DadosCadastro,
+  LinhaRepetidor,
+  MetaCadastro,
+  ValorArquivo,
+  ValorTaxonomia,
+} from "./cadastro";
+export type {
+  CadastroTipo,
+  CadastroTipoResumo,
+  DadosCadastroTipo,
+} from "./cadastroTipo";
+export type {
+  AtributoCampo,
+  CampoPersonalizado,
+  FormatoAtributo,
+  GrupoCamposPersonalizados,
+  OpcaoAtributo,
+  OpcaoCampo,
+  TipoCampoCatalogo,
+} from "./campoPersonalizado";
+export type {
   Empresa,
   EmpresaResumo,
   DadosEmpresa,
