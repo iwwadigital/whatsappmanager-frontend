@@ -16,6 +16,10 @@ import {
   listarTiposDeCampo,
 } from "../../services/api";
 import { ErroApi, mensagemDoErro } from "../../services/http";
+import {
+  grupoVazio,
+  tipoPadraoDoCatalogo,
+} from "../../utils/camposPersonalizados";
 import type { ErrosValidacao } from "../../types/api";
 import type {
   CadastroTipo,
@@ -32,7 +36,12 @@ import type {
  * cada grupo e, num repetidor, campos dentro de campos.
  *
  * Salva só este campo, com um PUT da empresa: os demais dados vão junto,
- * inalterados, para o update não zerá-los.
+ * inalterados, para o update não zerá-los. Salvou, volta para a visualização
+ * da empresa — é lá que a configuração aparece montada.
+ *
+ * Os tipos de cadastro oferecidos são os da **empresa da URL**, e não os da
+ * empresa ativa do header: quem tem `empresa.editar` pode estar configurando
+ * uma empresa que não é a sua (daí o `empresa_id` na listagem).
  */
 export default function CamposPersonalizadosEmpresa() {
   const { id } = useParams();
@@ -50,15 +59,19 @@ export default function CamposPersonalizadosEmpresa() {
   const [salvando, setSalvando] = useState(false);
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
-  const [mensagem, setMensagem] = useState<string | null>(null);
 
   /* O catálogo de tipos de campo e os tipos de cadastro da empresa. */
   useEffect(() => {
+    if (!id) return;
+
     let ativo = true;
 
     Promise.all([
       listarTiposDeCampo(),
-      cadastrosTiposApi.listar({ por_pagina: 100 }),
+      // Os tipos são os da empresa **desta tela**, e não os da empresa ativa
+      // do header: quem edita a configuração da empresa 3 precisa ver os
+      // tipos de cadastro dela.
+      cadastrosTiposApi.listar({ empresa_id: id, por_pagina: 100 }),
     ])
       .then(([tipos, resultado]) => {
         if (!ativo) return;
@@ -72,11 +85,22 @@ export default function CamposPersonalizadosEmpresa() {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [id]);
 
   useEffect(() => {
-    setGrupos(registro?.cadastros_campos_personalizados ?? []);
-  }, [registro]);
+    if (!registro || carregandoApoio) return;
+
+    const gravados = registro.cadastros_campos_personalizados ?? [];
+
+    // Empresa que ainda não configurou nada abre com um grupo e um campo
+    // prontos: a tela nasce utilizável, sem exigir dois cliques antes de
+    // poder digitar o primeiro campo.
+    setGrupos(
+      gravados.length > 0
+        ? gravados
+        : [grupoVazio(tipoPadraoDoCatalogo(catalogo))],
+    );
+  }, [registro, carregandoApoio, catalogo]);
 
   const salvar = async () => {
     if (!id || !registro) return;
@@ -84,7 +108,6 @@ export default function CamposPersonalizadosEmpresa() {
     setSalvando(true);
     setErros({});
     setErroGeral(null);
-    setMensagem(null);
 
     try {
       await empresasApi.atualizar(id, {
@@ -98,7 +121,11 @@ export default function CamposPersonalizadosEmpresa() {
         cadastros_campos_personalizados: grupos,
       });
 
-      setMensagem("Campos personalizados salvos com sucesso.");
+      // Salvou: a tela útil agora é a da empresa, onde os campos aparecem
+      // montados. A mensagem vai junto, no padrão das demais telas.
+      navegar(`/empresas/${id}`, {
+        state: { mensagem: "Campos personalizados salvos com sucesso." },
+      });
     } catch (falha) {
       if (falha instanceof ErroApi && falha.ehValidacao) {
         setErros(falha.erros);
@@ -143,12 +170,6 @@ export default function CamposPersonalizadosEmpresa() {
               <div className="mb-5">
                 <MensagemErro mensagem={erroGeral} />
               </div>
-            )}
-
-            {mensagem && (
-              <p className="mb-5 rounded-lg bg-success-50 px-4 py-3 text-sm text-success-700 dark:bg-success-500/10 dark:text-success-400">
-                {mensagem}
-              </p>
             )}
 
             <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">

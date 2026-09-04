@@ -8,6 +8,7 @@ import {
   ajustarAtributos,
   campoVazio,
   gerarChave,
+  inserirApos,
   tipoDoCampo,
   valorInicialDoAtributo,
 } from "../../../utils/camposPersonalizados";
@@ -24,6 +25,8 @@ interface EditorCampoProps {
   catalogo: TipoCampoCatalogo[];
   tiposDeCadastro: CadastroTipo[];
   aoAlterar: (campo: CampoPersonalizado) => void;
+  /** Acrescenta um campo em branco **logo abaixo** deste (o botão "+"). */
+  aoAdicionarAbaixo: () => void;
   aoRemover: () => void;
   /**
    * Dentro de um repetidor a lista de tipos é menor: o back não aceita
@@ -51,6 +54,7 @@ export default function EditorCampo({
   catalogo,
   tiposDeCadastro,
   aoAlterar,
+  aoAdicionarAbaixo,
   aoRemover,
   dentroDeRepeater = false,
   caminhoErro,
@@ -84,7 +88,7 @@ export default function EditorCampo({
     // branco, uma lista vazia), e não como null.
     novoTipo?.atributos.forEach((atributo) => {
       if (ajustado[atributo.chave] == null) {
-        ajustado[atributo.chave] = valorInicialDoAtributo(atributo.formato);
+        ajustado[atributo.chave] = valorInicialDoAtributo(atributo);
       }
     });
 
@@ -100,7 +104,8 @@ export default function EditorCampo({
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => {}}
+            title="Adicionar campo abaixo"
+            onClick={aoAdicionarAbaixo}
             disabled={desabilitado}
             className="text-theme-xs text-gray-500  hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -108,6 +113,7 @@ export default function EditorCampo({
           </button>
           <button
               type="button"
+              title="Remover campo"
               onClick={aoRemover}
               disabled={desabilitado}
               className="text-theme-xs text-gray-500  hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
@@ -178,9 +184,11 @@ export default function EditorCampo({
         </div>
         {/* Os atributos extras do tipo escolhido, na ordem que o back declara. */}
         {(tipo?.atributos ?? []).map((atributo) => (
-          <div className="grid grid-cols-1 gap-5 border-t border-gray-200  dark:border-gray-800">
+          <div
+            key={atributo.chave}
+            className="grid grid-cols-1 gap-5 border-t border-gray-200  dark:border-gray-800"
+          >
             <EditorAtributo
-              key={atributo.chave}
               atributo={atributo}
               valor={campo[atributo.chave]}
               aoAlterar={(valor) =>
@@ -260,6 +268,15 @@ function ListaDeCampos({
                 ),
               )
             }
+            aoAdicionarAbaixo={() =>
+              aoAlterar(
+                inserirApos(
+                  campos,
+                  indice,
+                  campoVazio(padrao?.chave ?? "string"),
+                ),
+              )
+            }
             aoRemover={() =>
               aoAlterar(campos.filter((_, posicao) => posicao !== indice))
             }
@@ -270,16 +287,16 @@ function ListaDeCampos({
           />
         ))}
       </div>
-
-      <button
-        type="button"
-        onClick={() => aoAlterar([...campos, campoVazio(padrao?.chave ?? "string")])}
-        disabled={desabilitado || !padrao}
-        className="mt-3 inline-flex items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
-      >
-        Adicionar campo da linha
-      </button>
-
+      {campos.length === 0 ? (
+        <button
+          type="button"
+          onClick={() => aoAlterar([...campos, campoVazio(padrao?.chave ?? "string")])}
+          disabled={desabilitado || !padrao}
+          className="mt-3 inline-flex items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
+        >
+          Adicionar campo da linha
+        </button>
+      ) : null}
       {erros[caminhoErro]?.[0] && (
         <p className="mt-1.5 text-theme-xs text-error-500">
           {erros[caminhoErro][0]}

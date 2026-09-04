@@ -4,6 +4,7 @@ import PageMeta from "../../components/common/PageMeta";
 import CabecalhoPagina from "../../components/crud/CabecalhoPagina";
 import ItemDetalhe from "../../components/crud/ItemDetalhe";
 import ValorDoCampo from "../../components/cadastros/ValorDoCampo";
+import Badge from "../../components/ui/badge/Badge";
 import {
   EstadoCarregando,
   MensagemErro,
@@ -12,6 +13,7 @@ import { useAutenticacao } from "../../context/AutenticacaoContext";
 import { useRegistro } from "../../hooks/useRegistro";
 import { cadastrosApi, listarTiposDeCampo } from "../../services/api";
 import type { Cadastro, TipoCampoCatalogo } from "../../types/modelos";
+import { camposParaExibicao } from "../../utils/camposPersonalizados";
 import { formatarDataHora, ouTraco } from "../../utils/formato";
 
 export default function VerCadastro() {
@@ -37,7 +39,9 @@ export default function VerCadastro() {
     };
   }, []);
 
-  const declaracao = registro?.declaracao ?? [];
+  // Tudo que está gravado: os campos declarados pela empresa e também os
+  // valores que sobraram de uma configuração anterior.
+  const campos = camposParaExibicao(registro?.declaracao ?? [], registro?.meta);
 
   return (
     <div>
@@ -96,20 +100,36 @@ export default function VerCadastro() {
               </ItemDetalhe>
             </dl>
 
-            {declaracao.length > 0 && (
+            {campos.length > 0 && (
               <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-800">
                 <h3 className="mb-4 text-base font-medium text-gray-800 dark:text-white/90">
                   Campos personalizados
                 </h3>
 
                 <dl>
-                  {declaracao.map((campo) => (
+                  {campos.map(({ campo, declarado }) => (
                     <ItemDetalhe key={campo.key} rotulo={campo.label}>
-                      <ValorDoCampo
-                        campo={campo}
-                        catalogo={catalogo}
-                        valor={registro.meta?.[campo.key]}
-                      />
+                      {declarado ? (
+                        <ValorDoCampo
+                          campo={campo}
+                          catalogo={catalogo}
+                          valor={registro.meta?.[campo.key]}
+                        />
+                      ) : (
+                        // Campo que saiu da configuração da empresa: o valor
+                        // continua gravado, e some da tela só quando alguém
+                        // o apagar de propósito.
+                        <div className="flex flex-wrap items-center gap-3">
+                          <ValorDoCampo
+                            campo={campo}
+                            catalogo={catalogo}
+                            valor={registro.meta?.[campo.key]}
+                          />
+                          <Badge size="sm" color="warning">
+                            Fora da configuração atual
+                          </Badge>
+                        </div>
+                      )}
                     </ItemDetalhe>
                   ))}
                 </dl>

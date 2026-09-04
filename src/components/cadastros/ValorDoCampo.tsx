@@ -1,4 +1,5 @@
 import Badge from "../ui/badge/Badge";
+import BotaoBaixarArquivo from "./BotaoBaixarArquivo";
 import { tipoDoCampo } from "../../utils/camposPersonalizados";
 import { formatarData, ouTraco } from "../../utils/formato";
 import type {
@@ -68,14 +69,17 @@ export default function ValorDoCampo({
     const arquivo = valor as ValorArquivo;
 
     return (
-      <a
-        href={arquivo.url}
-        target="_blank"
-        rel="noreferrer"
-        className="text-brand-500 hover:underline"
-      >
-        {arquivo.nome}
-      </a>
+      <span className="flex flex-wrap items-center gap-3">
+        <a
+          href={arquivo.url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-brand-500 hover:underline"
+        >
+          {arquivo.nome}
+        </a>
+        <BotaoBaixarArquivo arquivo={arquivo} />
+      </span>
     );
   }
 

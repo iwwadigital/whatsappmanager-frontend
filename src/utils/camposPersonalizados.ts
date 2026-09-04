@@ -1,4 +1,5 @@
 import type {
+  AtributoCampo,
   CampoPersonalizado,
   GrupoCamposPersonalizados,
   TipoCampoCatalogo,
@@ -40,9 +41,30 @@ export function campoVazio(tipoPadrao: string): CampoPersonalizado {
   };
 }
 
-/** Um grupo em branco (os campos de um tipo de cadastro). */
-export function grupoVazio(): GrupoCamposPersonalizados {
-  return { cadastro_tipo: "", campos: [] };
+/**
+ * Um grupo em branco (os campos de um tipo de cadastro).
+ *
+ * Já nasce com **um campo**: um grupo sem campo nenhum não tem utilidade, e
+ * abrir a tela (ou clicar em "adicionar tipo de cadastro") pedindo mais um
+ * clique antes de poder digitar só atrasa quem está configurando.
+ */
+export function grupoVazio(tipoPadrao: string): GrupoCamposPersonalizados {
+  return { cadastro_tipo: "", campos: [campoVazio(tipoPadrao)] };
+}
+
+/** O tipo de campo escolhido por padrão: o primeiro do catálogo. */
+export function tipoPadraoDoCatalogo(catalogo: TipoCampoCatalogo[]): string {
+  return catalogo[0]?.chave ?? "string";
+}
+
+/**
+ * A lista com um item novo logo **depois** da posição informada.
+ *
+ * É o que os botões de "+" de cada linha fazem: o campo (ou o grupo) novo
+ * nasce ao lado daquele em que se clicou, e não no fim de tudo.
+ */
+export function inserirApos<T>(lista: T[], posicao: number, item: T): T[] {
+  return [...lista.slice(0, posicao + 1), item, ...lista.slice(posicao + 1)];
 }
 
 /** O tipo do catálogo correspondente a um campo; `undefined` se sumiu. */
@@ -88,19 +110,24 @@ export function ajustarAtributos(
 }
 
 /**
- * O valor inicial de um atributo recém-habilitado, pelo formato dele.
+ * O valor inicial de um atributo recém-habilitado.
  *
- * Formato desconhecido vira `null` — o campo aparece marcado como não
- * suportado em vez de a tela quebrar.
+ * Atributo de opções fixas (o `accept_file` de um campo `file`) começa na
+ * **primeira** opção do catálogo — "Todos os formatos", que é a primeira de
+ * `ArquivoCadastro::GRUPOS` —, e não em branco: escolher "arquivo" sem dizer
+ * mais nada já é uma configuração válida.
+ *
+ * Formato que a tela não desenha vira texto vazio — o campo aparece marcado
+ * como não suportado em vez de a tela quebrar.
  */
-export function valorInicialDoAtributo(formato: string): unknown {
-  switch (formato) {
+export function valorInicialDoAtributo(atributo: AtributoCampo): unknown {
+  switch (atributo.formato) {
     case "lista_opcoes":
       return [{ label: "", key: "" }];
     case "lista_campos":
       return [];
     default:
-      return "";
+      return atributo.opcoes[0]?.chave ?? "";
   }
 }
 
@@ -115,6 +142,36 @@ export function camposDoTipo(
   if (!definicao || !slug) return [];
 
   return definicao.find((grupo) => grupo.cadastro_tipo === slug)?.campos ?? [];
+}
+
+/**
+ * Os campos a exibir na visualização de um cadastro.
+ *
+ * Primeiro os **declarados**, na ordem da configuração da empresa; depois os
+ * valores que continuam gravados em `cadastros_meta` mas saíram dela.
+ *
+ * O back nunca apaga o que saiu da declaração (`Cadastro::metaParaApi()`
+ * devolve tudo, o que não é mais declarado como texto puro), então a tela
+ * também não o esconde: um campo removido da configuração ainda tem conteúdo
+ * que alguém digitou.
+ */
+export function camposParaExibicao(
+  declaracao: CampoPersonalizado[],
+  meta: Record<string, unknown> | null | undefined,
+): { campo: CampoPersonalizado; declarado: boolean }[] {
+  const declarados = declaracao.map((campo) => ({ campo, declarado: true }));
+  const chaves = new Set(declaracao.map((campo) => campo.key));
+
+  const orfaos = Object.keys(meta ?? {})
+    .filter((chave) => !chaves.has(chave))
+    .map((chave) => ({
+      // Sem declaração não há rótulo nem tipo: a chave gravada é o que
+      // sobrou para identificar o valor.
+      campo: { label: chave, key: chave, type: "", required: false },
+      declarado: false,
+    }));
+
+  return [...declarados, ...orfaos];
 }
 
 /**

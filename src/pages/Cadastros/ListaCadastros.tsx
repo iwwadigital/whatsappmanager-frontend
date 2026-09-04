@@ -110,6 +110,7 @@ export default function ListaCadastros() {
                 valor={listagem.filtros.nome ?? ""}
                 aoAlterar={(valor) => listagem.definirFiltro("nome", valor)}
                 placeholder="Buscar pelo nome..."
+                className="xl:w-auto"
               />
             </div>
 
