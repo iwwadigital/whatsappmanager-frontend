@@ -9,6 +9,7 @@ import type {
   CadastroTipo,
   OpcaoCampo,
 } from "../../../types/modelos";
+import { TrashBinIcon } from "../../../icons";
 
 interface EditorAtributoProps {
   atributo: AtributoCampo;
@@ -58,7 +59,7 @@ export default function EditorAtributo({
 
     return (
       <div className="sm:col-span-2">
-        <Label>
+        <Label className="mt-3 pt-3 gap-1.5 mb-4">
           {atributo.rotulo}
           {atributo.obrigatorio && <span className="text-error-500">*</span>}
         </Label>
@@ -103,7 +104,7 @@ export default function EditorAtributo({
                 disabled={desabilitado}
                 className="h-11 text-theme-xs text-error-500 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Remover
+                <TrashBinIcon className="size-5 fill-current" />
               </button>
             </div>
           ))}
@@ -127,39 +128,49 @@ export default function EditorAtributo({
   if (atributo.formato === "tipo_cadastro") {
     return (
       // O valor gravado é o slug: é a chave estável do tipo.
-      <CampoSelect
-        id={id}
-        label={atributo.rotulo}
-        obrigatorio={atributo.obrigatorio}
-        valor={typeof valor === "string" ? valor : ""}
-        aoAlterar={aoAlterar}
-        opcoes={tiposDeCadastro.map((tipo) => ({
-          valor: tipo.slug,
-          rotulo: tipo.nome,
-        }))}
-        dica="O campo vai oferecer os cadastros deste tipo."
-        erro={erro}
-        desabilitado={desabilitado}
-      />
+      <>
+        <Label className="mt-3 pt-3 gap-1.5 mb-0">
+          {atributo.rotulo}
+          {atributo.obrigatorio && <span className="text-error-500">*</span>}
+        </Label>
+        <CampoSelect
+          id={id}
+          obrigatorio={atributo.obrigatorio}
+          valor={typeof valor === "string" ? valor : ""}
+          aoAlterar={aoAlterar}
+          opcoes={tiposDeCadastro.map((tipo) => ({
+            valor: tipo.slug,
+            rotulo: tipo.nome,
+          }))}
+          dica="O campo vai oferecer os cadastros deste tipo."
+          erro={erro}
+          desabilitado={desabilitado}
+        />
+      </>
     );
   }
 
   /* --------------------- Formatos aceitos no upload -------------------- */
   if (atributo.formato === "formato_arquivo") {
     return (
-      <CampoSelect
-        id={id}
-        label={atributo.rotulo}
-        obrigatorio={atributo.obrigatorio}
-        valor={typeof valor === "string" ? valor : ""}
-        aoAlterar={aoAlterar}
-        opcoes={atributo.opcoes.map((opcao) => ({
-          valor: opcao.chave,
-          rotulo: opcao.rotulo,
-        }))}
-        erro={erro}
-        desabilitado={desabilitado}
-      />
+      <>
+        <Label className="mt-3 pt-3 gap-1.5 mb-0">
+          {atributo.rotulo}
+          {atributo.obrigatorio && <span className="text-error-500">*</span>}
+        </Label>
+        <CampoSelect
+          id={id}
+          obrigatorio={atributo.obrigatorio}
+          valor={typeof valor === "string" ? valor : ""}
+          aoAlterar={aoAlterar}
+          opcoes={atributo.opcoes.map((opcao) => ({
+            valor: opcao.chave,
+            rotulo: opcao.rotulo,
+          }))}
+          erro={erro}
+          desabilitado={desabilitado}
+        />
+      </>
     );
   }
 

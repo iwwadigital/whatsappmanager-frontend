@@ -8,6 +8,7 @@ import type {
   GrupoCamposPersonalizados,
   TipoCampoCatalogo,
 } from "../../../types/modelos";
+import { TrashBinIcon,PlusIcon } from "../../../icons";
 
 interface ConstrutorCamposProps {
   valor: GrupoCamposPersonalizados[];
@@ -59,7 +60,7 @@ export default function ConstrutorCampos({
 
   // Um tipo de cadastro por grupo: os já usados saem da lista dos outros.
   const usados = valor.map((grupo) => grupo.cadastro_tipo);
-
+  
   return (
     <div className="space-y-5">
       {erros[RAIZ]?.[0] && (
@@ -69,9 +70,9 @@ export default function ConstrutorCampos({
       {valor.map((grupo, indice) => (
         <div
           key={indice}
-          className="rounded-2xl border border-gray-200 p-5 dark:border-gray-800"
+          className="border-b border-gray-200 py-5 dark:border-gray-800"
         >
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div className="relative mb-6 flex flex-wrap items-start justify-between gap-3">
             <CampoSelect
               id={`grupo-${indice}-tipo`}
               label="Tipo de cadastro"
@@ -88,19 +89,28 @@ export default function ConstrutorCampos({
               dica="Os campos abaixo aparecem nos cadastros deste tipo."
               erro={erros[`${RAIZ}.${indice}.cadastro_tipo`]?.[0]}
               desabilitado={desabilitado}
-              className="w-full sm:w-72"
+              className="w-full"
             />
-
-            <button
-              type="button"
-              onClick={() =>
-                aoAlterar(valor.filter((_, posicao) => posicao !== indice))
-              }
-              disabled={desabilitado}
-              className="h-11 text-theme-xs text-error-500 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Remover tipo
-            </button>
+            <div className="flex absolute -top-3 right-0 gap-3">
+              <button
+                type="button"
+                onClick={() => aoAlterar([...valor, grupoVazio()])}
+                disabled={desabilitado}
+                className="h-11 text-theme-xs text-gray-500  hover:text-brand-600 dark:text-gray-400 disabled:cursor-not-allowed  disabled:opacity-50"
+              >
+                <PlusIcon className="size-5 fill-current" />
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  aoAlterar(valor.filter((_, posicao) => posicao !== indice))
+                }
+                disabled={desabilitado}
+                className="h-11 text-gray-500 transition hover:text-error-500 dark:text-gray-400 dark:hover:text-error-500"
+              >
+                <TrashBinIcon className="size-5 fill-current" />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4">

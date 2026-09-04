@@ -17,6 +17,7 @@ import type {
   CampoPersonalizado,
   TipoCampoCatalogo,
 } from "../../../types/modelos";
+import { PlusIcon, TrashBinIcon } from "../../../icons";
 
 interface EditorCampoProps {
   campo: CampoPersonalizado;
@@ -91,111 +92,123 @@ export default function EditorCampo({
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <span className="text-theme-xs font-medium text-gray-500 dark:text-gray-400">
+    <>
+      <div className="mb-2 flex items-center justify-between gap-3 border-t border-gray-200 pt-6 dark:border-gray-800">
+        <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
           {campo.label || "Campo sem nome"}
         </span>
-        <button
-          type="button"
-          onClick={aoRemover}
-          disabled={desabilitado}
-          className="text-theme-xs text-error-500 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Remover campo
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => {}}
+            disabled={desabilitado}
+            className="text-theme-xs text-gray-500  hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <PlusIcon className="size-5 fill-current" />
+          </button>
+          <button
+              type="button"
+              onClick={aoRemover}
+              disabled={desabilitado}
+              className="text-theme-xs text-gray-500  hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <TrashBinIcon className="size-5 fill-current" />
+            </button>
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <CampoTexto
-          id={`${prefixo}-label`}
-          label="Nome do campo"
-          obrigatorio
-          valor={campo.label ?? ""}
-          aoAlterar={alterarRotulo}
-          placeholder="Selo de destaque"
-          erro={erros[`${caminhoErro}.label`]?.[0]}
-          desabilitado={desabilitado}
-        />
-
-        <CampoTexto
-          id={`${prefixo}-key`}
-          label="Chave"
-          obrigatorio
-          valor={campo.key ?? ""}
-          aoAlterar={(texto) => aoAlterar({ ...campo, key: gerarChave(texto) })}
-          placeholder="selo-de-destaque"
-          dica="Gerada a partir do nome; é ela que identifica o valor gravado."
-          erro={erros[`${caminhoErro}.key`]?.[0]}
-          desabilitado={desabilitado}
-        />
-
-        <div>
-          <CampoSelect
-            id={`${prefixo}-type`}
-            label="Tipo"
+      <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <CampoTexto
+            id={`${prefixo}-label`}
+            label="Nome do campo"
             obrigatorio
-            valor={campo.type ?? ""}
-            aoAlterar={alterarTipo}
-            opcoes={disponiveis.map((item) => ({
-              valor: item.chave,
-              rotulo: item.rotulo,
-            }))}
-            erro={erros[`${caminhoErro}.type`]?.[0]}
+            valor={campo.label ?? ""}
+            aoAlterar={alterarRotulo}
+            placeholder="Selo de destaque"
+            erro={erros[`${caminhoErro}.label`]?.[0]}
             desabilitado={desabilitado}
           />
-          {/* Tipo gravado que sumiu do catálogo: fica visível em vez de a
-              tela trocá-lo em silêncio. */}
-          {campo.type && !tipo && (
-            <p className="mt-1.5 flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400">
-              <Badge size="sm" color="warning">
-                Tipo não reconhecido
-              </Badge>
-              {campo.type}
-            </p>
-          )}
+
+          <CampoTexto
+            id={`${prefixo}-key`}
+            label="Chave"
+            obrigatorio
+            valor={campo.key ?? ""}
+            aoAlterar={(texto) => aoAlterar({ ...campo, key: gerarChave(texto) })}
+            placeholder="selo-de-destaque"
+            dica="Gerada a partir do nome; é ela que identifica o valor gravado."
+            erro={erros[`${caminhoErro}.key`]?.[0]}
+            desabilitado={desabilitado}
+          />
+
+          <div>
+            <CampoSelect
+              id={`${prefixo}-type`}
+              label="Tipo"
+              obrigatorio
+              valor={campo.type ?? ""}
+              aoAlterar={alterarTipo}
+              opcoes={disponiveis.map((item) => ({
+                valor: item.chave,
+                rotulo: item.rotulo,
+              }))}
+              erro={erros[`${caminhoErro}.type`]?.[0]}
+              desabilitado={desabilitado}
+            />
+            {/* Tipo gravado que sumiu do catálogo: fica visível em vez de a
+                tela trocá-lo em silêncio. */}
+            {campo.type && !tipo && (
+              <p className="mt-1.5 flex items-center gap-2 text-theme-xs text-gray-500 dark:text-gray-400">
+                <Badge size="sm" color="warning">
+                  Tipo não reconhecido
+                </Badge>
+                {campo.type}
+              </p>
+            )}
+          </div>
+
+          <CampoAlternador
+            id={`${prefixo}-required`}
+            label="Obrigatório"
+            descricao={campo.required ? "Sim" : "Não"}
+            valor={Boolean(campo.required)}
+            aoAlterar={(marcado) => aoAlterar({ ...campo, required: marcado })}
+            desabilitado={desabilitado}
+          />
         </div>
-
-        <CampoAlternador
-          id={`${prefixo}-required`}
-          label="Obrigatório"
-          descricao={campo.required ? "Sim" : "Não"}
-          valor={Boolean(campo.required)}
-          aoAlterar={(marcado) => aoAlterar({ ...campo, required: marcado })}
-          desabilitado={desabilitado}
-        />
-
         {/* Os atributos extras do tipo escolhido, na ordem que o back declara. */}
         {(tipo?.atributos ?? []).map((atributo) => (
-          <EditorAtributo
-            key={atributo.chave}
-            atributo={atributo}
-            valor={campo[atributo.chave]}
-            aoAlterar={(valor) =>
-              aoAlterar({ ...campo, [atributo.chave]: valor })
-            }
-            tiposDeCadastro={tiposDeCadastro}
-            prefixo={prefixo}
-            erro={erros[`${caminhoErro}.${atributo.chave}`]?.[0]}
-            desabilitado={desabilitado}
-            renderizarListaDeCampos={() => (
-              <ListaDeCampos
-                campos={(campo[atributo.chave] as CampoPersonalizado[]) ?? []}
-                aoAlterar={(campos) =>
-                  aoAlterar({ ...campo, [atributo.chave]: campos })
-                }
-                catalogo={catalogo}
-                tiposDeCadastro={tiposDeCadastro}
-                caminhoErro={`${caminhoErro}.${atributo.chave}`}
-                erros={erros}
-                rotulo={atributo.rotulo}
-                desabilitado={desabilitado}
-              />
-            )}
-          />
+          <div className="grid grid-cols-1 gap-5 border-t border-gray-200  dark:border-gray-800">
+            <EditorAtributo
+              key={atributo.chave}
+              atributo={atributo}
+              valor={campo[atributo.chave]}
+              aoAlterar={(valor) =>
+                aoAlterar({ ...campo, [atributo.chave]: valor })
+              }
+              tiposDeCadastro={tiposDeCadastro}
+              prefixo={prefixo}
+              erro={erros[`${caminhoErro}.${atributo.chave}`]?.[0]}
+              desabilitado={desabilitado}
+              renderizarListaDeCampos={() => (
+                <ListaDeCampos
+                  campos={(campo[atributo.chave] as CampoPersonalizado[]) ?? []}
+                  aoAlterar={(campos) =>
+                    aoAlterar({ ...campo, [atributo.chave]: campos })
+                  }
+                  catalogo={catalogo}
+                  tiposDeCadastro={tiposDeCadastro}
+                  caminhoErro={`${caminhoErro}.${atributo.chave}`}
+                  erros={erros}
+                  rotulo={atributo.rotulo}
+                  desabilitado={desabilitado}
+                />
+              )}
+            />
+          </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -231,7 +244,7 @@ function ListaDeCampos({
 
   return (
     <div>
-      <Label>{rotulo}</Label>
+      <Label className="mt-3 pt-3">{rotulo}</Label>
 
       <div className="space-y-4">
         {campos.map((subcampo, indice) => (
