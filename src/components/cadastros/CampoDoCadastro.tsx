@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import CampoAutocomplete from "../campos/CampoAutocomplete";
 import CampoData from "../campos/CampoData";
 import CampoSelect from "../campos/CampoSelect";
@@ -36,6 +37,13 @@ export interface CampoDoCadastroProps {
   /** Falso enquanto o cadastro não existe: o upload só vem depois de salvar. */
   podeAnexar: boolean;
   desabilitado?: boolean;
+  /**
+   * Botão à direita do campo de texto, quando a tela tiver algo a oferecer
+   * ali — hoje o "Gerar link curto" da url longo. Este componente não sabe o
+   * que a ação faz: só reserva o lugar dela, e por isso ela **não** desce
+   * para os campos de dentro de um repetidor.
+   */
+  acao?: ReactNode;
 }
 
 /**
@@ -59,6 +67,7 @@ export default function CampoDoCadastro({
   aoRemoverArquivo,
   podeAnexar,
   desabilitado = false,
+  acao,
 }: CampoDoCadastroProps) {
   const erro = erros[`meta.${caminho}`]?.[0];
   const tipo = tipoDoCampo(catalogo, campo);
@@ -76,6 +85,7 @@ export default function CampoDoCadastro({
           aoAlterar={aoAlterar}
           erro={erro}
           desabilitado={desabilitado}
+          acao={acao}
         />
         {/* Tipo que esta versão da tela não conhece: o valor continua
             editável como texto, e nada se perde. */}

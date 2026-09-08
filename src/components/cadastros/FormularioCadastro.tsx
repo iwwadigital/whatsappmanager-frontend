@@ -4,6 +4,7 @@ import CampoTexto from "../campos/CampoTexto";
 import CampoTextarea from "../campos/CampoTextarea";
 import Carregador from "../campos/Carregador";
 import CampoDoCadastro from "./CampoDoCadastro";
+import BotaoLinkCurto from "./BotaoLinkCurto";
 import Button from "../ui/button/Button";
 import { MensagemErro } from "../crud/EstadosLista";
 import {
@@ -16,6 +17,11 @@ import {
   metaParaEnvio,
   valorParaFormulario,
 } from "../../utils/camposPersonalizados";
+import {
+  campoUrlCurto,
+  ehCampoUrlLongo,
+  ehTipoLinkCurto,
+} from "../../utils/linkCurto";
 import type { ErrosValidacao } from "../../types/api";
 import type {
   Cadastro,
@@ -54,6 +60,10 @@ interface FormularioCadastroProps {
  *
  * Trocar o tipo troca o conjunto de campos, então a declaração é buscada de
  * novo — e os valores dos campos que continuam existindo são mantidos.
+ *
+ * **Link curto**: no tipo "Link Curto", o campo "Url longo" ganha um botão
+ * que gera o endereço no Bitly e o escreve no campo "Url curto" (que segue
+ * editável). Quem diz onde isso vale é `utils/linkCurto.ts`.
  */
 export default function FormularioCadastro({
   registro,
@@ -64,7 +74,12 @@ export default function FormularioCadastro({
   aoRemoverArquivo,
   aoCancelar,
 }: FormularioCadastroProps) {
-  const [tipo, setTipo] = useState<{ id: number; nome: string } | null>(null);
+  // O slug vem junto porque é ele que identifica o tipo "Link Curto".
+  const [tipo, setTipo] = useState<{
+    id: number;
+    nome: string;
+    slug: string;
+  } | null>(null);
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
 
@@ -75,6 +90,8 @@ export default function FormularioCadastro({
 
   const [carregandoCampos, setCarregandoCampos] = useState(false);
   const [erroCampos, setErroCampos] = useState<string | null>(null);
+  /** Falha da geração do link curto — não impede o resto do formulário. */
+  const [erroLinkCurto, setErroLinkCurto] = useState<string | null>(null);
 
   /* O catálogo é o mesmo para todo o sistema: uma consulta só. */
   useEffect(() => {
@@ -94,7 +111,13 @@ export default function FormularioCadastro({
     setNome(registro?.nome ?? "");
     setDescricao(registro?.descricao ?? "");
     setTipo(
-      registro?.tipo ? { id: registro.tipo.id, nome: registro.tipo.nome } : null,
+      registro?.tipo
+        ? {
+            id: registro.tipo.id,
+            nome: registro.tipo.nome,
+            slug: registro.tipo.slug,
+          }
+        : null,
     );
 
     const declarados = registro?.declaracao ?? [];
@@ -146,6 +169,14 @@ export default function FormularioCadastro({
     void carregarCampos(tipo.id);
   }, [tipo, registro, carregarCampos]);
 
+  /**
+   * O botão "Gerar link curto" só existe quando o tipo é o "Link Curto"
+   * **e** ele declara os dois campos: sem a url curto não haveria onde
+   * escrever o endereço gerado.
+   */
+  const chaveUrlCurto = campoUrlCurto(campos)?.key ?? null;
+  const geraLinkCurto = ehTipoLinkCurto(tipo?.slug) && chaveUrlCurto !== null;
+
   const enviar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
 
@@ -181,7 +212,9 @@ export default function FormularioCadastro({
           valor={tipo?.id ?? null}
           rotuloSelecionado={tipo?.nome ?? ""}
           aoSelecionar={(item) =>
-            setTipo(item ? { id: item.id, nome: item.nome } : null)
+            setTipo(
+              item ? { id: item.id, nome: item.nome, slug: item.slug } : null,
+            )
           }
           buscar={async (termo) => {
             const resultado = await cadastrosTiposApi.listar({
@@ -246,6 +279,12 @@ export default function FormularioCadastro({
             </p>
           )}
 
+          {erroLinkCurto && (
+            <div className="mb-5">
+              <MensagemErro mensagem={erroLinkCurto} />
+            </div>
+          )}
+
           {!carregandoCampos && campos.length > 0 && (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               {campos.map((campo) => (
@@ -269,6 +308,26 @@ export default function FormularioCadastro({
                   aoRemoverArquivo={(caminho) => aoRemoverArquivo?.(caminho)}
                   podeAnexar={Boolean(registro)}
                   desabilitado={salvando}
+                  acao={
+                    geraLinkCurto && chaveUrlCurto && ehCampoUrlLongo(campo) ? (
+                      <BotaoLinkCurto
+                        urlLongo={
+                          typeof valores[campo.key] === "string"
+                            ? (valores[campo.key] as string)
+                            : ""
+                        }
+                        titulo={nome}
+                        aoGerar={(link) =>
+                          setValores((atuais) => ({
+                            ...atuais,
+                            [chaveUrlCurto]: link,
+                          }))
+                        }
+                        aoFalhar={setErroLinkCurto}
+                        desabilitado={salvando}
+                      />
+                    ) : undefined
+                  }
                 />
               ))}
             </div>

@@ -170,7 +170,6 @@ export function camposParaExibicao(
       campo: { label: chave, key: chave, type: "", required: false },
       declarado: false,
     }));
-
   return [...declarados, ...orfaos];
 }
 

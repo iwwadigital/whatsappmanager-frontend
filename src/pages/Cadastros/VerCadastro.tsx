@@ -33,7 +33,7 @@ export default function VerCadastro() {
     listarTiposDeCampo()
       .then((tipos) => ativo && setCatalogo(tipos))
       .catch(() => ativo && setCatalogo([]));
-
+    
     return () => {
       ativo = false;
     };
@@ -125,9 +125,6 @@ export default function VerCadastro() {
                             catalogo={catalogo}
                             valor={registro.meta?.[campo.key]}
                           />
-                          <Badge size="sm" color="warning">
-                            Fora da configuração atual
-                          </Badge>
                         </div>
                       )}
                     </ItemDetalhe>

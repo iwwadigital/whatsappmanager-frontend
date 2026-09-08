@@ -140,6 +140,38 @@ export async function removerArquivoDoCampo(
   return resposta.cadastro as Cadastro;
 }
 
+/** O que `POST /cadastros/link-curto` devolve. */
+export interface LinkCurtoGerado {
+  /** Endereço pronto para uso (`https://bit.ly/3xYzAbc`). */
+  link: string;
+  /** O mesmo endereço sem protocolo, como o Bitly o identifica. */
+  id: string;
+}
+
+/**
+ * Gera o link curto de uma URL (Bitly).
+ *
+ * É o botão ao lado do campo "Url longo" do tipo de cadastro "Link Curto".
+ * A rota **não grava nada**: devolve o endereço para a tela pôr no campo
+ * "Url curto", que segue editável e vai para o banco no salvar do cadastro.
+ *
+ * `url_curto` é opcional e cria um link personalizado (`custom_bitlinks`) em
+ * vez do gerado automaticamente; o formulário não o envia.
+ */
+export async function gerarLinkCurto(dados: {
+  url_longo: string;
+  titulo?: string | null;
+  url_curto?: string | null;
+}): Promise<LinkCurtoGerado> {
+  const resposta = await requisitar({
+    metodo: "POST",
+    caminho: "cadastros/link-curto",
+    dados,
+  });
+
+  return resposta.link_curto as LinkCurtoGerado;
+}
+
 /**
  * Catálogo dos tipos de campo personalizado que o sistema sabe tratar.
  *
