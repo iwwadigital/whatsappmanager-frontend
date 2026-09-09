@@ -20,11 +20,27 @@ export function formatarDataHora(valor?: string | null): string {
   return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
 }
 
-/** Somente a data, sem a hora. */
+/**
+ * Somente a data, sem a hora.
+ *
+ * Aceita tanto o `timestamp` da API (`2026-09-08 16:23:06`) quanto a data
+ * pura de um campo personalizado do tipo `date` (`2026-09-08`) — que não tem
+ * hora nenhuma e, por isso, escapava do formato dd/mm/aaaa.
+ */
 export function formatarData(valor?: string | null): string {
-  const completo = formatarDataHora(valor);
+  if (!valor) {
+    return "—";
+  }
 
-  return completo === "—" ? completo : completo.split(" ")[0];
+  const partes = /^(\d{4})-(\d{2})-(\d{2})/.exec(valor);
+
+  if (!partes) {
+    return valor;
+  }
+
+  const [, ano, mes, dia] = partes;
+
+  return `${dia}/${mes}/${ano}`;
 }
 
 /** Texto vazio vira traço, para não deixar célula em branco na tabela. */

@@ -15,6 +15,7 @@ import {
 import { mensagemDoErro } from "../../services/http";
 import {
   metaParaEnvio,
+  semArquivo,
   valorParaFormulario,
 } from "../../utils/camposPersonalizados";
 import {
@@ -43,7 +44,12 @@ interface FormularioCadastroProps {
   erros: ErrosValidacao;
   erroGeral?: string | null;
   aoEnviar: (envio: EnvioCadastro) => void;
-  aoRemoverArquivo?: (caminho: string) => void;
+  /**
+   * Remove um arquivo já gravado, devolvendo **se deu certo**: o campo espera
+   * a promessa (é ela que segura o loader) e só limpa o valor quando a API
+   * confirma. Ausente na tela de cadastro, onde não há arquivo gravado.
+   */
+  aoRemoverArquivo?: (caminho: string) => Promise<boolean> | boolean;
   aoCancelar: () => void;
 }
 
@@ -305,7 +311,14 @@ export default function FormularioCadastro({
                   aoSelecionarArquivo={(caminho, arquivo) =>
                     setArquivos((atuais) => ({ ...atuais, [caminho]: arquivo }))
                   }
-                  aoRemoverArquivo={(caminho) => aoRemoverArquivo?.(caminho)}
+                  aoRemoverArquivo={async (caminho) => {
+                    // O valor só sai da tela quando a API confirma — e sai
+                    // sozinho, sem recarregar o registro: recarregar jogaria
+                    // fora tudo o que ainda não foi salvo.
+                    if (await aoRemoverArquivo?.(caminho)) {
+                      setValores((atuais) => semArquivo(atuais, caminho));
+                    }
+                  }}
                   podeAnexar={Boolean(registro)}
                   desabilitado={salvando}
                   acao={

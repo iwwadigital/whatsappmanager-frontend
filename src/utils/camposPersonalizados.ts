@@ -294,3 +294,35 @@ export function linhaVazia(
 
   return linha;
 }
+
+/**
+ * Os valores do formulário sem o arquivo do caminho informado.
+ *
+ * O caminho tem as duas formas aceitas pela rota de upload: `contrato` (campo
+ * do cadastro) e `anexos.0.comprovante` (campo da 1ª linha de um repetidor).
+ * Limpar só o campo removido — em vez de recarregar o registro — preserva o
+ * que já estiver digitado no resto do formulário.
+ */
+export function semArquivo(
+  valores: Record<string, unknown>,
+  caminho: string,
+): Record<string, unknown> {
+  const [chave, indice, subchave] = caminho.split(".");
+
+  if (indice === undefined || subchave === undefined) {
+    return { ...valores, [chave]: "" };
+  }
+
+  const linhas = Array.isArray(valores[chave])
+    ? [...(valores[chave] as Record<string, unknown>[])]
+    : [];
+  const linha = linhas[Number(indice)];
+
+  if (!linha) {
+    return valores;
+  }
+
+  linhas[Number(indice)] = { ...linha, [subchave]: "" };
+
+  return { ...valores, [chave]: linhas };
+}

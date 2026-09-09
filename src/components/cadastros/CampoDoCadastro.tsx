@@ -1,13 +1,16 @@
 import type { ReactNode } from "react";
+import CampoArquivo from "../campos/CampoArquivo";
 import CampoAutocomplete from "../campos/CampoAutocomplete";
 import CampoData from "../campos/CampoData";
 import CampoSelect from "../campos/CampoSelect";
 import CampoTexto from "../campos/CampoTexto";
 import Badge from "../ui/badge/Badge";
 import Label from "../form/Label";
+import { PlusIcon, TrashBinIcon } from "../../icons";
 import { cadastrosApi } from "../../services/api";
 import {
   aceitosDoGrupo,
+  inserirApos,
   linhaVazia,
   tipoDoCampo,
 } from "../../utils/camposPersonalizados";
@@ -33,7 +36,8 @@ export interface CampoDoCadastroProps {
   /** Arquivo escolhido e ainda não enviado, por caminho. */
   arquivos: Record<string, File | null>;
   aoSelecionarArquivo: (caminho: string, arquivo: File | null) => void;
-  aoRemoverArquivo: (caminho: string) => void;
+  /** A remoção chama a API: devolver a promessa liga o loader do campo. */
+  aoRemoverArquivo: (caminho: string) => void | Promise<void>;
   /** Falso enquanto o cadastro não existe: o upload só vem depois de salvar. */
   podeAnexar: boolean;
   desabilitado?: boolean;
@@ -177,56 +181,29 @@ export default function CampoDoCadastro({
     );
 
     return (
-      <div>
-        <Label htmlFor={id}>
-          {campo.label}
-          {campo.required && <span className="text-error-500">*</span>}
-        </Label>
-
-        <input
-          id={id}
-          type="file"
-          accept={aceitosDoGrupo(formatos?.opcoes ?? [], campo.accept_file)}
-          disabled={desabilitado}
-          onChange={(evento) =>
-            aoSelecionarArquivo(caminho, evento.target.files?.[0] ?? null)
-          }
-          className="h-11 w-full cursor-pointer rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 file:mr-4 file:h-11 file:cursor-pointer file:border-0 file:border-r file:border-gray-300 file:bg-gray-50 file:px-4 file:text-sm file:text-gray-700 focus:border-brand-300 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:file:border-gray-700 dark:file:bg-gray-800 dark:file:text-gray-400"
-        />
-
-        {/* O upload acontece depois de salvar: o caminho no disco usa o id
-            do cadastro. É o mesmo contrato da imagem de capa. */}
-        {pendente && (
-          <p className="mt-1.5 text-theme-xs text-gray-500 dark:text-gray-400">
-            {podeAnexar
-              ? `"${pendente.name}" será enviado ao salvar.`
-              : `"${pendente.name}" será enviado assim que o cadastro for criado.`}
-          </p>
-        )}
-
-        {atual && !pendente && (
-          <p className="mt-1.5 flex flex-wrap items-center gap-2 text-theme-xs">
-            <a
-              href={atual.url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-brand-500 hover:underline"
-            >
-              {atual.nome}
-            </a>
-            <button
-              type="button"
-              onClick={() => aoRemoverArquivo(caminho)}
-              disabled={desabilitado}
-              className="text-error-500 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Remover
-            </button>
-          </p>
-        )}
-
-        {erro && <p className="mt-1.5 text-theme-xs text-error-500">{erro}</p>}
-      </div>
+      <CampoArquivo
+        id={id}
+        label={campo.label}
+        obrigatorio={campo.required}
+        aceitos={aceitosDoGrupo(formatos?.opcoes ?? [], campo.accept_file)}
+        arquivo={pendente}
+        aoSelecionar={(arquivo) => aoSelecionarArquivo(caminho, arquivo)}
+        atual={atual ? { nome: atual.nome, url: atual.url } : null}
+        // Sem arquivo gravado não há o que pedir para a API: a lixeira só
+        // desfaz a escolha ainda não enviada.
+        aoRemover={atual ? () => aoRemoverArquivo(caminho) : undefined}
+        erro={erro}
+        // O upload acontece depois de salvar: o caminho no disco usa o id do
+        // cadastro. É o mesmo contrato da imagem de capa.
+        dica={
+          pendente
+            ? podeAnexar
+              ? "O arquivo será enviado ao salvar."
+              : "O arquivo será enviado assim que o cadastro for criado."
+            : undefined
+        }
+        desabilitado={desabilitado}
+      />
     );
   }
 
@@ -259,20 +236,40 @@ export default function CampoDoCadastro({
               key={indice}
               className="rounded-xl border border-gray-200 p-4 dark:border-gray-800"
             >
-              <div className="mb-3 flex items-center justify-between">
+              {/* Mesmos botões do construtor de campos da empresa: a linha
+                  nova nasce ao lado daquela em que se clicou. */}
+              <div className="mb-3 flex items-center justify-between gap-3">
                 <span className="text-theme-xs font-medium text-gray-500 dark:text-gray-400">
                   Linha {indice + 1}
                 </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    aoAlterar(linhas.filter((_, posicao) => posicao !== indice))
-                  }
-                  disabled={desabilitado}
-                  className="text-theme-xs text-error-500 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Remover linha
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    title="Adicionar linha abaixo"
+                    onClick={() =>
+                      aoAlterar(
+                        inserirApos(linhas, indice, linhaVazia(subcampos)),
+                      )
+                    }
+                    disabled={desabilitado}
+                    className="text-gray-500 transition hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400"
+                  >
+                    <PlusIcon className="size-5 fill-current" />
+                  </button>
+                  <button
+                    type="button"
+                    title="Remover linha"
+                    onClick={() =>
+                      aoAlterar(
+                        linhas.filter((_, posicao) => posicao !== indice),
+                      )
+                    }
+                    disabled={desabilitado}
+                    className="text-gray-500 transition hover:text-error-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-error-500"
+                  >
+                    <TrashBinIcon className="size-5 fill-current" />
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -299,14 +296,19 @@ export default function CampoDoCadastro({
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={() => aoAlterar([...linhas, linhaVazia(subcampos)])}
-          disabled={desabilitado}
-          className="mt-3 inline-flex items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
-        >
-          Adicionar linha
-        </button>
+        {/* Sem nenhuma linha não há onde clicar no "+": o botão de texto
+            devolve a lista ao começo, como no construtor da empresa. */}
+        {linhas.length === 0 && (
+          <button
+            type="button"
+            onClick={() => aoAlterar([linhaVazia(subcampos)])}
+            disabled={desabilitado}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]"
+          >
+            <PlusIcon className="size-5 fill-current" />
+            Adicionar linha
+          </button>
+        )}
 
         {erro && <p className="mt-1.5 text-theme-xs text-error-500">{erro}</p>}
       </div>

@@ -22,7 +22,7 @@ import type { Cadastro } from "../../types/modelos";
 export default function EditarCadastro() {
   const { id } = useParams();
   const navegar = useNavigate();
-  const { registro, carregando, erro, recarregar } = useRegistro<Cadastro>(
+  const { registro, carregando, erro } = useRegistro<Cadastro>(
     cadastrosApi.mostrar,
     id,
   );
@@ -61,17 +61,26 @@ export default function EditarCadastro() {
     }
   };
 
-  /** Remove um arquivo já gravado e recarrega o registro. */
-  const removerArquivo = async (caminho: string) => {
-    if (!id) return;
+  /**
+   * Remove um arquivo já gravado e diz se deu certo.
+   *
+   * Quem limpa o campo é o formulário, com a resposta desta chamada: **o
+   * registro não é recarregado** porque isso remontaria a tela inteira e
+   * levaria junto o que ainda não foi salvo.
+   */
+  const removerArquivo = async (caminho: string): Promise<boolean> => {
+    if (!id) return false;
 
     setErroGeral(null);
 
     try {
       await removerArquivoDoCampo(id, caminho);
-      await recarregar();
+
+      return true;
     } catch (falha) {
       setErroGeral(mensagemDoErro(falha));
+
+      return false;
     }
   };
 
