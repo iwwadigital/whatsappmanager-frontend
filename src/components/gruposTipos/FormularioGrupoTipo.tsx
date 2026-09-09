@@ -187,7 +187,7 @@ export default function FormularioGrupoTipo({
           valor={prioridade}
           aoAlterar={setPrioridade}
           placeholder="0"
-          dica="Quanto maior, mais alto na ordenação."
+          dica="Nível de atendimento: quanto maior, mais cedo o robô executa as ações dos grupos deste tipo. Um tipo pago passa na frente de um gratuito."
           erro={erros.prioridade?.[0]}
         />
 

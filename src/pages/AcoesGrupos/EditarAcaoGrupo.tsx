@@ -150,7 +150,7 @@ export default function EditarAcaoGrupo() {
               tipo="number"
               valor={prioridade}
               aoAlterar={setPrioridade}
-              dica="Menor primeiro: o robô executa da menor prioridade para a maior. Vem do tipo da ação."
+              dica="Menor primeiro, e só entre grupos do mesmo nível: antes dela vem a prioridade do tipo do grupo. Vem do tipo da ação."
               erro={erros.prioridade?.[0]}
             />
 
