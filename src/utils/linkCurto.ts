@@ -18,7 +18,7 @@ import { gerarSlug } from "./slug";
  */
 
 /** Slug do tipo de cadastro que ganha o botão. */
-export const TIPO_LINK_CURTO = "link-curto";
+export const TIPO_LINK_CURTO = "link-uteis";
 
 /** O campo com a URL de origem. */
 export const CAMPO_URL_LONGO = "url-longo";
