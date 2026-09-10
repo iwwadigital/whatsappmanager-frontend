@@ -16,7 +16,7 @@ import type { DadosGrupoTipo, Grupo, GrupoTipo } from "../../types/modelos";
 import { gerarSlug } from "../../utils/slug";
 
 /** Mesmos padrões da tabela "grupos_tipos". */
-const PADRAO_PRIORIDADE = "0";
+const PADRAO_PRIORIDADE = "100";
 const PADRAO_PARTICIPANTES_MAX = "500";
 const PADRAO_ADMIN_MIN = "5";
 
@@ -186,8 +186,8 @@ export default function FormularioGrupoTipo({
           obrigatorio
           valor={prioridade}
           aoAlterar={setPrioridade}
-          placeholder="0"
-          dica="Nível de atendimento: quanto maior, mais cedo o robô executa as ações dos grupos deste tipo. Um tipo pago passa na frente de um gratuito."
+          placeholder="100"
+          dica="Nível de atendimento: quanto menor, mais cedo o robô executa as ações dos grupos deste tipo. Dê a um tipo pago um número menor que o do gratuito."
           erro={erros.prioridade?.[0]}
         />
 
