@@ -30,9 +30,42 @@ interface FormularioGrupoTipoProps {
   aoSelecionarImagem: (arquivo: File | null) => void;
   aoRemoverImagem?: () => void;
   removendoImagem?: boolean;
+  /**
+   * As artes de campanha escolhidas e ainda não enviadas, por coluna.
+   *
+   * São duas hoje (`imagem_resumo_do_dia` e `imagem_ofertas_do_momento`) e
+   * seguem o mesmo contrato da capa: o upload vem depois de salvar, porque o
+   * caminho no disco usa o id. Um mapa, e não duas props por imagem, para uma
+   * arte nova não obrigar a mexer na assinatura.
+   */
+  imagensCampanha: Record<string, File | null>;
+  aoSelecionarImagemCampanha: (campo: string, arquivo: File | null) => void;
+  aoRemoverImagemCampanha?: (campo: string) => void;
+  removendoCampanha?: string | null;
   aoEnviar: (dados: DadosGrupoTipo) => void;
   aoCancelar: () => void;
 }
+
+/**
+ * As artes de campanha do tipo: a coluna que grava o caminho, a que devolve a
+ * URL pronta e o rótulo de cada uma.
+ */
+const ARTES_DE_CAMPANHA: {
+  campo: string;
+  url: "imagem_resumo_do_dia_url" | "imagem_ofertas_do_momento_url";
+  rotulo: string;
+}[] = [
+  {
+    campo: "imagem_resumo_do_dia",
+    url: "imagem_resumo_do_dia_url",
+    rotulo: "Imagem do resumo do dia",
+  },
+  {
+    campo: "imagem_ofertas_do_momento",
+    url: "imagem_ofertas_do_momento_url",
+    rotulo: "Imagem das ofertas do momento",
+  },
+];
 
 /** Formulário compartilhado pelo cadastro e pela edição de tipo de grupo. */
 export default function FormularioGrupoTipo({
@@ -44,6 +77,10 @@ export default function FormularioGrupoTipo({
   aoSelecionarImagem,
   aoRemoverImagem,
   removendoImagem = false,
+  imagensCampanha,
+  aoSelecionarImagemCampanha,
+  aoRemoverImagemCampanha,
+  removendoCampanha = null,
   aoEnviar,
   aoCancelar,
 }: FormularioGrupoTipoProps) {
@@ -58,6 +95,7 @@ export default function FormularioGrupoTipo({
   );
   const [adminMin, setAdminMin] = useState(PADRAO_ADMIN_MIN);
   const [descricao, setDescricao] = useState("");
+  const [eGratis, setEGratis] = useState(false);
   const [status, setStatus] = useState(true);
   const [selecionados, setSelecionados] = useState<number[]>([]);
 
@@ -80,6 +118,7 @@ export default function FormularioGrupoTipo({
       registro ? String(registro.quantidade_admin_min) : PADRAO_ADMIN_MIN,
     );
     setDescricao(registro?.descricao_novo_grupo ?? "");
+    setEGratis(registro?.e_gratis ?? false);
     setStatus(registro?.status ?? true);
     setSelecionados((registro?.grupos ?? []).map((grupo) => grupo.id));
   }, [registro]);
@@ -112,7 +151,9 @@ export default function FormularioGrupoTipo({
       grupos.map((grupo) => ({
         valor: grupo.id,
         rotulo: grupo.nome,
-        descricao: grupo.whatsapp_id,
+        // `ItemSelecao.descricao` é opcional, não anulável: grupo sem id do
+        // WhatsApp simplesmente não tem linha secundária.
+        descricao: grupo.whatsapp_id ?? undefined,
       })),
     [grupos],
   );
@@ -141,6 +182,7 @@ export default function FormularioGrupoTipo({
       quantidade_participantes_max: Number(participantesMax),
       quantidade_admin_min: Number(adminMin),
       descricao_novo_grupo: descricao.trim() === "" ? null : descricao,
+      e_gratis: eGratis,
       status,
       grupos: selecionados,
     });
@@ -236,6 +278,15 @@ export default function FormularioGrupoTipo({
         </div>
 
         <CampoAlternador
+          id="e_gratis"
+          label="Grupo gratuito"
+          descricao={eGratis ? "Sim" : "Não"}
+          valor={eGratis}
+          aoAlterar={setEGratis}
+          erro={erros.e_gratis?.[0]}
+        />
+
+        <CampoAlternador
           id="status"
           label="Status"
           descricao={status ? "Ativo" : "Inativo"}
@@ -243,6 +294,28 @@ export default function FormularioGrupoTipo({
           aoAlterar={setStatus}
           erro={erros.status?.[0]}
         />
+
+        {/* As artes de campanha, com o mesmo contrato da capa: o upload vem
+            depois de salvar, porque o caminho no disco usa o id. */}
+        {ARTES_DE_CAMPANHA.map((arte) => (
+          <CampoImagem
+            key={arte.campo}
+            id={arte.campo}
+            label={arte.rotulo}
+            urlAtual={registro?.[arte.url]}
+            arquivo={imagensCampanha[arte.campo] ?? null}
+            aoSelecionar={(arquivo) =>
+              aoSelecionarImagemCampanha(arte.campo, arquivo)
+            }
+            aoRemover={
+              aoRemoverImagemCampanha
+                ? () => aoRemoverImagemCampanha(arte.campo)
+                : undefined
+            }
+            removendo={removendoCampanha === arte.campo}
+            erro={erros.imagem?.[0]}
+          />
+        ))}
 
         <div className="sm:col-span-2">
           <CampoSelecaoMultipla

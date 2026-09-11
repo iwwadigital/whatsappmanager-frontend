@@ -111,6 +111,15 @@ export default function VerGrupoTipo() {
               <ItemDetalhe rotulo="Prioridade">
                 {registro.prioridade}
               </ItemDetalhe>
+              <ItemDetalhe rotulo="Grupo gratuito">
+                {registro.e_gratis ? "Sim" : "Não"}
+              </ItemDetalhe>
+              <ItemDetalhe rotulo="Imagem do resumo do dia">
+                <LinkDaImagem url={registro.imagem_resumo_do_dia_url} />
+              </ItemDetalhe>
+              <ItemDetalhe rotulo="Imagem das ofertas do momento">
+                <LinkDaImagem url={registro.imagem_ofertas_do_momento_url} />
+              </ItemDetalhe>
               <ItemDetalhe rotulo="Máximo de participantes">
                 {registro.quantidade_participantes_max}
               </ItemDetalhe>
@@ -147,5 +156,23 @@ export default function VerGrupoTipo() {
         )}
       </div>
     </div>
+  );
+}
+
+/** A arte de campanha, como link — o tamanho delas não cabe no detalhe. */
+function LinkDaImagem({ url }: { url: string | null }) {
+  if (!url) {
+    return <>—</>;
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="text-brand-500 transition hover:text-brand-600"
+    >
+      Ver imagem
+    </a>
   );
 }

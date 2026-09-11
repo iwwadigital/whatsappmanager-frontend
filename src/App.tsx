@@ -24,6 +24,10 @@ import NovaPermissao from "./pages/Permissoes/NovaPermissao";
 import EditarPermissao from "./pages/Permissoes/EditarPermissao";
 import VerPermissao from "./pages/Permissoes/VerPermissao";
 
+import ListaAlertas from "./pages/Alertas/ListaAlertas";
+import NovoAlerta from "./pages/Alertas/NovoAlerta";
+import EditarAlerta from "./pages/Alertas/EditarAlerta";
+import VerAlerta from "./pages/Alertas/VerAlerta";
 import ListaAcoes from "./pages/Acoes/ListaAcoes";
 import EditarAcao from "./pages/Acoes/EditarAcao";
 
@@ -248,6 +252,18 @@ export default function App() {
                 path="/grupos-tipos/:id/editar"
                 element={<EditarGrupoTipo />}
               />
+            </Route>
+
+            {/* Alertas (salvar também agenda o disparo no robô) */}
+            <Route element={<RotaComPermissao permissao="alerta.ver" />}>
+              <Route path="/alertas" element={<ListaAlertas />} />
+              <Route path="/alertas/:id" element={<VerAlerta />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="alerta.criar" />}>
+              <Route path="/alertas/novo" element={<NovoAlerta />} />
+            </Route>
+            <Route element={<RotaComPermissao permissao="alerta.editar" />}>
+              <Route path="/alertas/:id/editar" element={<EditarAlerta />} />
             </Route>
 
             {/* Ações (sem cadastro: são criadas pelo sistema) */}

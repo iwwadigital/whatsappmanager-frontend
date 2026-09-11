@@ -4,8 +4,10 @@ import type {
   AcaoGrupo,
   AcaoGrupoLog,
   AcaoTipo,
+  Alerta,
   Autenticacao,
   Cadastro,
+  DadosAlerta,
   CadastroTipo,
   DadosCadastro,
   DadosCadastroTipo,
@@ -40,6 +42,7 @@ import type {
   WhatsappApi,
   WhatsappConta,
 } from "../types/modelos";
+import { carregarTodos } from "./carregarTodos";
 import { enviarArquivo, requisitar } from "./http";
 import { criarRecurso } from "./recurso";
 
@@ -140,6 +143,68 @@ export async function removerArquivoDoCampo(
   return resposta.cadastro as Cadastro;
 }
 
+/**
+ * O tipo de cadastro com aquele slug, na empresa ativa.
+ *
+ * O filtro `nome` do index procura também no slug; o `find` aqui garante que
+ * "moeda" não traga "moeda-estrangeira". Devolve `null` quando a empresa ainda
+ * não criou o tipo — a tela então esconde o campo em vez de quebrar.
+ */
+export async function buscarTipoPeloSlug(
+  slug: string,
+): Promise<CadastroTipo | null> {
+  const resultado = await cadastrosTiposApi.listar({
+    nome: slug,
+    por_pagina: 20,
+  });
+
+  return resultado.itens.find((tipo) => tipo.slug === slug) ?? null;
+}
+
+/**
+ * Cadastros de um tipo, pelo **slug** dele — o que alimenta os autocompletes
+ * do alerta (selo de destaque, rota aérea, programa de fidelidade...).
+ *
+ * Todos eles são cadastros: o slug do tipo é o que separa um campo do outro.
+ *
+ * É uma busca **paginada**, como toda busca de autocomplete: quem digita vai
+ * refinando o termo até achar. Para os campos que precisam do catálogo inteiro
+ * na tela, use `listarCadastrosDoTipo()`.
+ */
+export async function buscarCadastrosDoTipo(
+  slug: string,
+  termo = "",
+): Promise<Cadastro[]> {
+  const resultado = await cadastrosApi.listar({
+    cadastro_tipo_slug: slug,
+    nome: termo,
+    por_pagina: 20,
+  });
+
+  return resultado.itens;
+}
+
+/**
+ * **Todos** os cadastros de um tipo.
+ *
+ * É o que os campos de seleção múltipla precisam: a busca deles é local, e uma
+ * página de 20 esconderia o resto — pior, na edição um registro já vinculado
+ * que ficasse de fora sumiria da tela e seria perdido no salvar, porque o
+ * formulário manda o conjunto final.
+ *
+ * `comMeta` pede os campos personalizados junto, e só o campo de moeda o usa:
+ * a sigla dela é um campo personalizado, e a listagem não a devolveria.
+ */
+export async function listarCadastrosDoTipo(
+  slug: string,
+  comMeta = false,
+): Promise<Cadastro[]> {
+  return carregarTodos<Cadastro>(cadastrosApi.listar, {
+    cadastro_tipo_slug: slug,
+    ...(comMeta ? { com_meta: 1 } : {}),
+  });
+}
+
 /** O que `POST /cadastros/link-curto` devolve. */
 export interface LinkCurtoGerado {
   /** Endereço pronto para uso (`https://bit.ly/3xYzAbc`). */
@@ -212,11 +277,88 @@ export const gruposApi = criarRecurso<Grupo, DadosGrupo>({
   chaveItem: "grupo",
 });
 
-export const gruposTiposApi = criarRecurso<GrupoTipo, DadosGrupoTipo>({
-  caminho: "grupos-tipos",
-  chaveLista: "grupos_tipos",
-  chaveItem: "grupo_tipo",
-});
+/**
+ * O tipo de grupo tem **três** imagens: a capa, que usa as rotas padrão de
+ * `criarRecurso`, e as duas artes de campanha, que têm o campo na URL.
+ */
+export const gruposTiposApi = {
+  ...criarRecurso<GrupoTipo, DadosGrupoTipo>({
+    caminho: "grupos-tipos",
+    chaveLista: "grupos_tipos",
+    chaveItem: "grupo_tipo",
+  }),
+
+  /** `campo`: "imagem_resumo_do_dia" ou "imagem_ofertas_do_momento". */
+  async enviarImagemDaCampanha(
+    id: number | string,
+    campo: string,
+    arquivo: File,
+  ): Promise<GrupoTipo> {
+    const resposta = await enviarArquivo({
+      caminho: `grupos-tipos/${id}/imagens/${campo}`,
+      campo: "imagem",
+      arquivo,
+    });
+
+    return resposta.grupo_tipo as GrupoTipo;
+  },
+
+  async removerImagemDaCampanha(
+    id: number | string,
+    campo: string,
+  ): Promise<GrupoTipo> {
+    const resposta = await requisitar({
+      metodo: "DELETE",
+      caminho: `grupos-tipos/${id}/imagens/${campo}`,
+    });
+
+    return resposta.grupo_tipo as GrupoTipo;
+  },
+};
+
+/**
+ * Alertas da empresa ativa.
+ *
+ * Salvar um alerta também põe o disparo na fila do robô — uma ação por tipo de
+ * grupo escolhido. A arte da ida e a da volta são por tipo de grupo e sobem
+ * depois de salvar, porque o caminho no disco usa os dois ids.
+ */
+export const alertasApi = {
+  ...criarRecurso<Alerta, DadosAlerta>({
+    caminho: "alertas",
+    chaveLista: "alertas",
+    chaveItem: "alerta",
+  }),
+
+  /** `campo`: "imagem_ida" ou "imagem_volta". */
+  async enviarImagemDoTipo(
+    id: number | string,
+    grupoTipoId: number | string,
+    campo: string,
+    arquivo: File,
+  ): Promise<Alerta> {
+    const resposta = await enviarArquivo({
+      caminho: `alertas/${id}/grupos-tipos/${grupoTipoId}/imagens/${campo}`,
+      campo: "imagem",
+      arquivo,
+    });
+
+    return resposta.alerta as Alerta;
+  },
+
+  async removerImagemDoTipo(
+    id: number | string,
+    grupoTipoId: number | string,
+    campo: string,
+  ): Promise<Alerta> {
+    const resposta = await requisitar({
+      metodo: "DELETE",
+      caminho: `alertas/${id}/grupos-tipos/${grupoTipoId}/imagens/${campo}`,
+    });
+
+    return resposta.alerta as Alerta;
+  },
+};
 
 /**
  * Membros do grupo (tabela pivô com chave composta): o caminho depende do

@@ -18,6 +18,7 @@ import {
   HorizontaLDots,
   ListIcon,
   MultiUserIcon,
+  PaperPlaneIcon,
   PlugInIcon,
   UserCircleIcon,
 } from "../icons";
@@ -63,6 +64,12 @@ const itensMenu: ItemMenu[] = [
         permissao: "grupo_atividade.ver",
       },
     ],
+  },
+  {
+    nome: "Alertas",
+    icone: <PaperPlaneIcon />,
+    caminho: "/alertas",
+    permissao: "alerta.ver",
   },
   {
     nome: "Ações",

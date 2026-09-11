@@ -12,7 +12,18 @@ export type {
 export type { AcaoGrupoLog, AcaoGrupoLogExecucao } from "./acaoGrupoLog";
 export type { AcaoTipo, AcaoTipoResumo, DadosAcaoTipo } from "./acaoTipo";
 export type {
+  Alerta,
+  AlertaDisponibilidade,
+  AlertaGrupoTipo,
+  AlertaPrograma,
+  DadosAlerta,
+  DadosAlertaDisponibilidade,
+  DadosAlertaPrograma,
+  SituacaoAlerta,
+} from "./alerta";
+export type {
   Cadastro,
+  CadastroResumo,
   DadosCadastro,
   LinhaRepetidor,
   MetaCadastro,

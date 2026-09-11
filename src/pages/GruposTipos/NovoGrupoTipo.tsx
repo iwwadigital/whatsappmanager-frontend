@@ -14,6 +14,7 @@ export default function NovoGrupoTipo() {
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [imagem, setImagem] = useState<File | null>(null);
+  const [artes, setArtes] = useState<Record<string, File | null>>({});
 
   /**
    * A imagem só pode ser enviada depois que o tipo existe (o caminho no disco
@@ -36,6 +37,12 @@ export default function NovoGrupoTipo() {
 
       if (imagem) {
         await gruposTiposApi.enviarImagem(tipo.id, imagem);
+      }
+
+      for (const [campo, arquivo] of Object.entries(artes)) {
+        if (arquivo) {
+          await gruposTiposApi.enviarImagemDaCampanha(tipo.id, campo, arquivo);
+        }
       }
 
       navegar("/grupos-tipos", {
@@ -77,6 +84,10 @@ export default function NovoGrupoTipo() {
         }
         imagem={imagem}
         aoSelecionarImagem={setImagem}
+        imagensCampanha={artes}
+        aoSelecionarImagemCampanha={(campo, arquivo) =>
+          setArtes((atuais) => ({ ...atuais, [campo]: arquivo }))
+        }
         aoEnviar={salvar}
         aoCancelar={() => navegar("/grupos-tipos")}
       />

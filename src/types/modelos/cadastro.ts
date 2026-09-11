@@ -28,6 +28,19 @@ export type LinhaRepetidor = Record<string, unknown>;
  */
 export type MetaCadastro = Record<string, unknown>;
 
+/**
+ * Cadastro no formato reduzido — o que vem junto de quem o referencia.
+ *
+ * É a forma que os alertas recebem: selo de destaque, rota aérea, programa de
+ * fidelidade, moeda, ponto de atenção, link útil e rodapé são todos cadastros,
+ * e o que separa um do outro é o slug do tipo.
+ */
+export interface CadastroResumo {
+  id: number;
+  nome: string;
+  tipo?: CadastroTipoResumo | null;
+}
+
 /** Model: App\Models\Cadastro\Cadastro (tabela "cadastros"). */
 export interface Cadastro {
   id: number;

@@ -26,6 +26,8 @@ export default function EditarGrupoTipo() {
   const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [imagem, setImagem] = useState<File | null>(null);
   const [removendoImagem, setRemovendoImagem] = useState(false);
+  const [artes, setArtes] = useState<Record<string, File | null>>({});
+  const [removendoArte, setRemovendoArte] = useState<string | null>(null);
 
   const salvar = async (dados: DadosGrupoTipo) => {
     if (!id) return;
@@ -39,6 +41,12 @@ export default function EditarGrupoTipo() {
 
       if (imagem) {
         await gruposTiposApi.enviarImagem(id, imagem);
+      }
+
+      for (const [campo, arquivo] of Object.entries(artes)) {
+        if (arquivo) {
+          await gruposTiposApi.enviarImagemDaCampanha(id, campo, arquivo);
+        }
       }
 
       navegar("/grupos-tipos", {
@@ -69,6 +77,23 @@ export default function EditarGrupoTipo() {
       setErroGeral(mensagemDoErro(falha));
     } finally {
       setRemovendoImagem(false);
+    }
+  };
+
+  /** Apaga uma das artes de campanha, liberando o campo para outra. */
+  const removerArte = async (campo: string) => {
+    if (!id) return;
+
+    setRemovendoArte(campo);
+    setErroGeral(null);
+
+    try {
+      await gruposTiposApi.removerImagemDaCampanha(id, campo);
+      await recarregar();
+    } catch (falha) {
+      setErroGeral(mensagemDoErro(falha));
+    } finally {
+      setRemovendoArte(null);
     }
   };
 
@@ -104,6 +129,12 @@ export default function EditarGrupoTipo() {
           aoSelecionarImagem={setImagem}
           aoRemoverImagem={removerImagem}
           removendoImagem={removendoImagem}
+          imagensCampanha={artes}
+          aoSelecionarImagemCampanha={(campo, arquivo) =>
+            setArtes((atuais) => ({ ...atuais, [campo]: arquivo }))
+          }
+          aoRemoverImagemCampanha={removerArte}
+          removendoCampanha={removendoArte}
           aoEnviar={salvar}
           aoCancelar={() => navegar("/grupos-tipos")}
         />
